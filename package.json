@@ -1,0 +1,14 @@
+{
+  "name": "instagram-ai-agent",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.0",
+    "crypto-js": "^4.2.0",
+    "razorpay": "^2.9.2"
+  }
+}
