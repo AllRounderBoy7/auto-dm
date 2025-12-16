@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - InstaBot AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .sidebar { transition: transform 0.3s ease; }
+        .sidebar.closed { transform: translateX(-100%); }
+        @media (min-width: 1024px) { .sidebar.closed { transform: translateX(0); } }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar fixed lg:relative z-40 w-64 h-full bg-white shadow-lg">
+            <div class="p-6">
+                <div class="flex items-center space-x-2 mb-8">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                        <i class="fab fa-instagram text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">InstaBot AI</span>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="#" onclick="showSection('dashboard')" class="nav-link active flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-100 text-purple-600">
+                        <i class="fas fa-home w-5"></i><span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showSection('automation')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-robot w-5"></i><span>Automation</span>
+                    </a>
+                    <a href="#" onclick="showSection('messages')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-envelope w-5"></i><span>Messages</span>
+                    </a>
+                    <a href="#" onclick="showSection('analytics')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-chart-bar w-5"></i><span>Analytics</span>
+                    </a>
+                    <a href="#" onclick="showSection('accounts')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fab fa-instagram w-5"></i><span>Accounts</span>
+                    </a>
+                    <a href="#" onclick="showSection('billing')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-credit-card w-5"></i><span>Billing</span>
+                    </a>
+                    <a href="#" onclick="showSection('settings')" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-cog w-5"></i><span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Plan Status -->
+            <div class="absolute bottom-0 left-0 right-0 p-6">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium" id="currentPlan">Free Plan</span>
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="text-sm opacity-80 mb-3">
+                        <span id="dmsUsed">0</span>/<span id="dmsLimit">100</span> DMs used
+                    </div>
+                    <div class="w-full bg-white/30 rounded-full h-2 mb-3">
+                        <div id="usageBar" class="bg-white rounded-full h-2" style="width: 0%"></div>
+                    </div>
+                    <button onclick="showSection('billing')" class="w-full py-2 bg-white text-purple-600 rounded-lg font-medium text-sm hover:bg-gray-100 transition">
+                        Upgrade Plan
+                    </button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm sticky top-0 z-30">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleSidebar()" class="lg:hidden text-gray-600">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 id="pageTitle" class="text-xl font-semibold text-gray-800">Dashboard</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        
+                        <div class="relative">
+                            <button onclick="toggleUserDropdown()" class="flex items-center space-x-3">
+                                <img id="userAvatar" src="https://i.pravatar.cc/40" class="w-10 h-10 rounded-full">
+                                <span id="userName" class="hidden md:block font-medium text-gray-700">User</span>
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </button>
+                            
+                            <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-50">
+                                <a href="#" onclick="showSection('settings')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i> Profile
+                                </a>
+                                <a href="#" onclick="showSection('billing')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-credit-card mr-2"></i> Billing
+                                </a>
+                                <hr class="my-2">
+                                <a href="#" onclick="logout()" class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- DASHBOARD SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="dashboardSection" class="p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total DMs Sent</p>
+                                <h3 id="totalDms" class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> +12% from last week</p>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Auto Replies</p>
+                                <h3 id="totalReplies" class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-reply text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> +8% from last week</p>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Response Rate</p>
+                                <h3 id="responseRate" class="text-3xl font-bold text-gray-800">0%</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-percentage text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> +5% from last week</p>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Active Campaigns</p>
+                                <h3 id="activeCampaigns" class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-bullhorn text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">Running now</p>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="grid lg:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">DM Activity (Last 7 Days)</h3>
+                        <canvas id="dmChart"></canvas>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Response Analytics</h3>
+                        <canvas id="responseChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                    <div id="recentActivity" class="space-y-4">
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-green-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">Auto DM sent to @user123</p>
+                                <p class="text-sm text-gray-500">2 minutes ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- AUTOMATION SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="automationSection" class="p-6 hidden">
+                <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Auto DM Settings</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoDmToggle" class="sr-only peer" onchange="toggleAutoDm()">
+                            <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-700" id="autoDmStatus">OFF</span>
+                        </label>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Welcome Message (New Followers)</label>
+                            <textarea id="welcomeMessage" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600 focus:border-transparent" placeholder="Hi {name}! Thanks for following me! 🙌 How can I help you today?"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Use {name} for follower's name, {username} for username</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Auto Reply Message</label>
+                            <textarea id="autoReplyMessage" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600 focus:border-transparent" placeholder="Thanks for your message! I'll get back to you shortly. In the meantime, check out..."></textarea>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Delay Between DMs (seconds)</label>
+                                <input type="number" id="dmDelay" value="30" min="10" max="300" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600">
+                                <p class="text-xs text-gray-500 mt-1">Minimum 10 seconds for safety</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Daily DM Limit</label>
+                                <input type="number" id="dailyLimit" value="50" min="1" max="500" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600">
+                                <p class="text-xs text-gray-500 mt-1">Based on your plan limit</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveAutomationSettings()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition">
+                            <i class="fas fa-save mr-2"></i> Save Settings
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI Keyword Responses -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">AI Keyword Responses</h3>
+                    <p class="text-gray-500 text-sm mb-4">Set automatic responses based on keywords in messages</p>
+                    
+                    <div id="keywordList" class="space-y-3 mb-4">
+                        <!-- Keywords loaded dynamically -->
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-3">
+                        <input type="text" id="newKeyword" placeholder="Keyword (e.g., price)" class="px-4 py-3 border border-gray-300 rounded-xl">
+                        <input type="text" id="newResponse" placeholder="Response message" class="px-4 py-3 border border-gray-300 rounded-xl">
+                        <button onclick="addKeyword()" class="px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
+                            <i class="fas fa-plus mr-2"></i> Add
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Comment Auto Reply -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Comment Auto Reply</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoCommentToggle" class="sr-only peer">
+                            <div class="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Comment Reply Template</label>
+                        <textarea id="commentReply" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="Thanks for your comment! 🙏 Check DM for more info."></textarea>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- MESSAGES SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="messagesSection" class="p-6 hidden">
+                <div class="glass-card rounded-2xl shadow-sm overflow-hidden">
+                    <div class="flex h-[600px]">
+                        <!-- Conversation List -->
+                        <div class="w-full md:w-1/3 border-r">
+                            <div class="p-4 border-b">
+                                <input type="text" id="searchMessages" placeholder="Search messages..." class="w-full px-4 py-2 bg-gray-100 rounded-xl" oninput="searchConversations()">
+                            </div>
+                            <div id="conversationList" class="overflow-y-auto h-[calc(100%-60px)]">
+                                <div class="p-4 text-center text-gray-500">
+                                    <i class="fas fa-inbox text-4xl mb-2"></i>
+                                    <p>No conversations yet</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Area -->
+                        <div class="hidden md:flex flex-1 flex-col">
+                            <div id="chatHeader" class="p-4 border-b flex items-center space-x-3 bg-gray-50">
+                                <p class="text-gray-500">Select a conversation to start messaging</p>
+                            </div>
+                            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                                <!-- Messages loaded here -->
+                            </div>
+                            <div id="chatInput" class="p-4 border-t bg-white">
+                                <div class="flex gap-3">
+                                    <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 px-4 py-3 border border-gray-300 rounded-xl" disabled>
+                                    <button onclick="sendMessage()" id="sendBtn" class="px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition disabled:opacity-50" disabled>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- ANALYTICS SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="analyticsSection" class="p-6 hidden">
+                <div class="grid lg:grid-cols-4 gap-6 mb-6">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h4 class="text-gray-500 text-sm mb-2">Today</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="todayDms">0</p>
+                        <p class="text-sm text-gray-500">DMs Sent</p>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h4 class="text-gray-500 text-sm mb-2">This Week</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="weeklyDms">0</p>
+                        <p class="text-sm text-gray-500">DMs Sent</p>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h4 class="text-gray-500 text-sm mb-2">This Month</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="monthlyDms">0</p>
+                        <p class="text-sm text-gray-500">DMs Sent</p>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h4 class="text-gray-500 text-sm mb-2">All Time</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="allTimeDms">0</p>
+                        <p class="text-sm text-gray-500">DMs Sent</p>
+                    </div>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Performance Overview</h3>
+                        <canvas id="performanceChart" height="200"></canvas>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Message Types</h3>
+                        <canvas id="messageTypeChart" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Performing Keywords</h3>
+                    <div id="topKeywords" class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="font-medium">price</span>
+                            <span class="text-purple-600">245 triggers</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="font-medium">hello</span>
+                            <span class="text-purple-600">189 triggers</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- ACCOUNTS SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="accountsSection" class="p-6 hidden">
+                <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Connected Instagram Accounts</h3>
+                            <p class="text-sm text-gray-500">Manage your connected accounts</p>
+                        </div>
+                        <button onclick="openConnectModal()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition">
+                            <i class="fab fa-instagram mr-2"></i> Connect Account
+                        </button>
+                    </div>
+                    
+                    <div id="accountsList" class="space-y-4">
+                        <div class="text-center py-12 text-gray-500">
+                            <i class="fab fa-instagram text-6xl mb-4 text-gray-300"></i>
+                            <p class="text-lg font-medium">No accounts connected</p>
+                            <p class="text-sm">Connect your Instagram account to start automation</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Limits Info -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <h4 class="font-semibold text-gray-800 mb-4">Account Limits</h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-purple-50 rounded-xl">
+                            <p class="text-purple-600 font-semibold">Starter</p>
+                            <p class="text-2xl font-bold text-gray-800">1</p>
+                            <p class="text-sm text-gray-500">Instagram Account</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-xl">
+                            <p class="text-blue-600 font-semibold">Pro</p>
+                            <p class="text-2xl font-bold text-gray-800">3</p>
+                            <p class="text-sm text-gray-500">Instagram Accounts</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-xl">
+                            <p class="text-green-600 font-semibold">Enterprise</p>
+                            <p class="text-2xl font-bold text-gray-800">10</p>
+                            <p class="text-sm text-gray-500">Instagram Accounts</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- BILLING SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="billingSection" class="p-6 hidden">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Current Plan -->
+                    <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Current Plan</h3>
+                        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                            <div>
+                                <p id="billingPlanName" class="text-xl font-bold text-purple-600">Free Plan</p>
+                                <p id="billingPlanExpiry" class="text-sm text-gray-500">No expiry</p>
+                            </div>
+                            <div class="text-right">
+                                <span id="billingPlanBadge" class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center p-3 bg-gray-50 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-800" id="billingDmsUsed">0</p>
+                                <p class="text-xs text-gray-500">DMs Used</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-800" id="billingDmsLimit">100</p>
+                                <p class="text-xs text-gray-500">DMs Limit</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-800" id="billingAccounts">1</p>
+                                <p class="text-xs text-gray-500">Accounts</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-xl">
+                                <p class="text-2xl font-bold text-gray-800" id="billingDaysLeft">∞</p>
+                                <p class="text-xs text-gray-500">Days Left</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upgrade Plans -->
+                    <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Upgrade Your Plan</h3>
+                        
+                        <!-- Billing Toggle -->
+                        <div class="flex justify-center mb-6">
+                            <div class="inline-flex items-center bg-gray-100 rounded-full p-1">
+                                <button id="billingMonthlyBtn" onclick="switchBillingType('monthly')" class="px-6 py-2 rounded-full font-medium transition bg-white shadow text-purple-600">Monthly</button>
+                                <button id="billingYearlyBtn" onclick="switchBillingType('yearly')" class="px-6 py-2 rounded-full font-medium transition text-gray-600">Yearly <span class="text-green-500 text-xs">-20%</span></button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- STARTER PLAN - PRICE: ₹499/month, ₹4790/year -->
+                            <div class="border-2 border-gray-200 rounded-2xl p-6 hover:border-purple-400 transition cursor-pointer" onclick="selectUpgradePlan('starter')">
+                                <h4 class="text-xl font-bold text-gray-800">Starter</h4>
+                                <p class="text-gray-500 text-sm mb-4">For beginners</p>
+                                <p class="text-3xl font-bold text-purple-600 mb-4">
+                                    ₹<span class="plan-price" data-monthly="499" data-yearly="4790">499</span>
+                                    <span class="text-sm text-gray-500 plan-period">/month</span>
+                                </p>
+                                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>500 DMs/month</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>1 Instagram Account</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>Basic AI Replies</li>
+                                </ul>
+                                <button class="w-full py-3 border-2 border-purple-600 text-purple-600 rounded-xl font-medium hover:bg-purple-600 hover:text-white transition">
+                                    Select Plan
+                                </button>
+                            </div>
+                            
+                            <!-- PRO PLAN - PRICE: ₹999/month, ₹9590/year -->
+                            <div class="border-2 border-purple-600 rounded-2xl p-6 relative" onclick="selectUpgradePlan('pro')">
+                                <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">POPULAR</span>
+                                <h4 class="text-xl font-bold text-gray-800">Pro</h4>
+                                <p class="text-gray-500 text-sm mb-4">For growing accounts</p>
+                                <p class="text-3xl font-bold text-purple-600 mb-4">
+                                    ₹<span class="plan-price" data-monthly="999" data-yearly="9590">999</span>
+                                    <span class="text-sm text-gray-500 plan-period">/month</span>
+                                </p>
+                                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>2000 DMs/month</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>3 Instagram Accounts</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>Advanced AI + Analytics</li>
+                                </ul>
+                                <button class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
+                                    Select Plan
+                                </button>
+                            </div>
+                            
+                            <!-- ENTERPRISE PLAN - PRICE: ₹2499/month, ₹23990/year -->
+                            <div class="border-2 border-gray-200 rounded-2xl p-6 hover:border-purple-400 transition cursor-pointer" onclick="selectUpgradePlan('enterprise')">
+                                <h4 class="text-xl font-bold text-gray-800">Enterprise</h4>
+                                <p class="text-gray-500 text-sm mb-4">For businesses</p>
+                                <p class="text-3xl font-bold text-purple-600 mb-4">
+                                    ₹<span class="plan-price" data-monthly="2499" data-yearly="23990">2499</span>
+                                    <span class="text-sm text-gray-500 plan-period">/month</span>
+                                </p>
+                                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>Unlimited DMs</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>10 Instagram Accounts</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>API + White Label</li>
+                                </ul>
+                                <button class="w-full py-3 border-2 border-purple-600 text-purple-600 rounded-xl font-medium hover:bg-purple-600 hover:text-white transition">
+                                    Select Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment History -->
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Payment History</h3>
+                        <div id="paymentHistory" class="space-y-3">
+                            <p class="text-gray-500 text-center py-4">No payment history</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- SETTINGS SECTION -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <section id="settingsSection" class="p-6 hidden">
+                <div class="max-w-2xl">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Profile Settings</h3>
+                        
+                        <div class="flex items-center space-x-4 mb-6">
+                            <img id="settingsAvatar" src="https://i.pravatar.cc/80" class="w-20 h-20 rounded-full">
+                            <div>
+                                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
+                                    Change Photo
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <input type="text" id="settingsName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="settingsEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-100" disabled>
+                                <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone (Optional)</label>
+                                <input type="tel" id="settingsPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="+91 XXXXXXXXXX">
+                            </div>
+                            
+                            <button onclick="updateProfile()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition">
+                                <i class="fas fa-save mr-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Notification Settings</h3>
+                        
+                        <div class="space-y-4">
+                            <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <span class="font-medium text-gray-700">Email Notifications</span>
+                                    <p class="text-xs text-gray-500">Receive updates via email</p>
+                                </div>
+                                <input type="checkbox" id="emailNotif" checked class="w-5 h-5 text-purple-600 rounded">
+                            </label>
+                            <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <span class="font-medium text-gray-700">DM Alerts</span>
+                                    <p class="text-xs text-gray-500">Get notified for new DMs</p>
+                                </div>
+                                <input type="checkbox" id="dmNotif" checked class="w-5 h-5 text-purple-600 rounded">
+                            </label>
+                            <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <span class="font-medium text-gray-700">Weekly Report</span>
+                                    <p class="text-xs text-gray-500">Receive weekly analytics</p>
+                                </div>
+                                <input type="checkbox" id="weeklyReport" checked class="w-5 h-5 text-purple-600 rounded">
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+                        <p class="text-gray-500 text-sm mb-4">These actions are irreversible</p>
+                        <div class="flex gap-4">
+                            <button onclick="deleteAccount()" class="px-6 py-3 bg-red-100 text-red-600 rounded-xl font-medium hover:bg-red-200 transition">
+                                <i class="fas fa-trash mr-2"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- MODALS -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    
+    <!-- Connect Instagram Modal -->
+    <div id="connectModal" class="modal">
+        <div class="glass-card rounded-3xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Connect Instagram</h3>
+                <button onclick="closeConnectModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Instagram Username</label>
+                    <input type="text" id="igUsername" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="@yourusername">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Instagram Password</label>
+                    <input type="password" id="igPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="••••••••">
+                </div>
+                
+                <div class="p-4 bg-yellow-50 rounded-xl">
+                    <p class="text-yellow-800 text-sm"><i class="fas fa-shield-alt mr-2"></i>Your credentials are encrypted and secure</p>
+                </div>
+                
+                <button onclick="connectInstagramAccount()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition">
+                    <i class="fab fa-instagram mr-2"></i> Connect Account
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="glass-card rounded-3xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Complete Payment</h3>
+                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-6">
+                <p class="text-gray-500">You're upgrading to</p>
+                <p id="paymentPlanName" class="text-2xl font-bold text-purple-600">Pro Plan</p>
+                <p class="text-3xl font-bold text-gray-800 mt-2">₹<span id="paymentAmount">999</span></p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="payWithRazorpay()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <img src="https://razorpay.com/favicon.png" class="w-6 h-6"> Pay with Razorpay
+                </button>
+                
+                <button onclick="payWithUPI()" class="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-mobile-alt"></i> Pay with UPI
+                </button>
+                
+                <div id="upiSection" class="hidden">
+                    <div class="p-4 bg-gray-50 rounded-xl text-center">
+                        <p class="text-sm text-gray-600 mb-2">Scan QR or pay to UPI ID:</p>
+                        <p class="font-mono font-bold text-lg">yourstore@upi</p>
+                        <img id="upiQR" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=yourstore@upi" class="mx-auto mt-4">
+                        <input type="text" id="upiTxnId" placeholder="Enter Transaction ID" class="w-full mt-4 px-4 py-3 border rounded-xl">
+                        <button onclick="verifyUPI()" class="w-full mt-4 py-3 bg-purple-600 text-white rounded-xl font-medium">
+                            Verify Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal">
+        <div class="text-center">
+            <div class="loader mx-auto mb-4"></div>
+            <p class="text-white text-lg" id="loadingText">Please wait...</p>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-full opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-900 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
+            <i id="toastIcon" class="fas fa-check-circle text-green-500"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+    </div>
+    
+    <!-- Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <script>
+        // ══════════════════════════════════════════════════════════════════
+        // 🔧 CONFIGURATION
+        // ══════════════════════════════════════════════════════════════════
+        const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
+        
+        // ════════════════════════════════════════════════════════════════
+        // 💰 RAZORPAY CONFIG - YAHAN APNA RAZORPAY KEY DALO
+        // ════════════════════════════════════════════════════════════════
+        const RAZORPAY_KEY = 'rzp_test_XXXXXXXXXX'; // <- REPLACE WITH YOUR KEY
+        
+        // ════════════════════════════════════════════════════════════════
+        // 💰 UPI CONFIG - YAHAN APNA UPI ID DALO
+        // ════════════════════════════════════════════════════════════════
+        const UPI_ID = 'yourstore@upi'; // <- REPLACE WITH YOUR UPI ID
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // ══════════════════════════════════════════════════════════════════
+        // GLOBAL VARIABLES
+        // ══════════════════════════════════════════════════════════════════
+        let currentUser = null;
+        let userProfile = null;
+        let selectedPlan = null;
+        let billingType = 'monthly';
+        let keywords = [];
+        
+        // ══════════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ══════════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            initCharts();
+        });
+        
+        async function checkAuth() {
+            showLoading('Checking authentication...');
+            
+            const { data: { user }, error } = await supabase.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            currentUser = user;
+            await loadUserProfile();
+            hideLoading();
+        }
+        
+        async function loadUserProfile() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (data) {
+                userProfile = data;
+                updateUI();
+            } else {
+                // Create profile if doesn't exist
+                await supabase.from('profiles').insert({
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    full_name: currentUser.user_metadata?.full_name || 'User',
+                    plan: 'free',
+                    dms_used: 0,
+                    dms_limit: 100,
+                    created_at: new Date().toISOString()
+                });
+                await loadUserProfile();
+            }
+        }
+        
+        function updateUI() {
+            // Update user info
+            document.getElementById('userName').textContent = userProfile.full_name || 'User';
+            document.getElementById('settingsName').value = userProfile.full_name || '';
+            document.getElementById('settingsEmail').value = userProfile.email || '';
+            
+            // Update plan info
+            const planNames = { free: 'Free Plan', starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
+            const planLimits = { free: 100, starter: 500, pro: 2000, enterprise: 999999 };
+            
+            document.getElementById('currentPlan').textContent = planNames[userProfile.plan] || 'Free Plan';
+            document.getElementById('dmsUsed').textContent = userProfile.dms_used || 0;
+            document.getElementById('dmsLimit').textContent = planLimits[userProfile.plan] || 100;
+            
+            const usagePercent = ((userProfile.dms_used || 0) / (planLimits[userProfile.plan] || 100)) * 100;
+            document.getElementById('usageBar').style.width = `${Math.min(usagePercent, 100)}%`;
+            
+            // Update stats
+            document.getElementById('totalDms').textContent = userProfile.dms_used || 0;
+            document.getElementById('totalReplies').textContent = userProfile.auto_replies || 0;
+            
+            // Load automation settings
+            if (userProfile.automation_settings) {
+                const settings = userProfile.automation_settings;
+                document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
+                document.getElementById('autoReplyMessage').value = settings.autoReplyMessage || '';
+                document.getElementById('dmDelay').value = settings.dmDelay || 30;
+                document.getElementById('dailyLimit').value = settings.dailyLimit || 50;
+                document.getElementById('autoDmToggle').checked = settings.autoDmEnabled || false;
+                document.getElementById('autoDmStatus').textContent = settings.autoDmEnabled ? 'ON' : 'OFF';
+            }
+            
+            // Load keywords
+            loadKeywords();
+            
+            // Load connected accounts
+            loadConnectedAccounts();
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // NAVIGATION
+        // ══════════════════════════════════════════════════════════════════
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(`${section}Section`).classList.remove('hidden');
+            
+            // Update nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('bg-purple-100', 'text-purple-600');
+                link.classList.add('text-gray-600');
+            });
+            
+            event.target.closest('.nav-link')?.classList.add('bg-purple-100', 'text-purple-600');
+            event.target.closest('.nav-link')?.classList.remove('text-gray-600');
+            
+            // Update page title
+            const titles = {
+                dashboard: 'Dashboard',
+                automation: 'Automation',
+                messages: 'Messages',
+                analytics: 'Analytics',
+                accounts: 'Instagram Accounts',
+                billing: 'Billing',
+                settings: 'Settings'
+            };
+            document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
+            
+            // Initialize charts if analytics
+            if (section === 'analytics') {
+                initAnalyticsCharts();
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('closed');
+        }
+        
+        function toggleUserDropdown() {
+            document.getElementById('userDropdown').classList.toggle('hidden');
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // AUTOMATION FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        function toggleAutoDm() {
+            const enabled = document.getElementById('autoDmToggle').checked;
+            document.getElementById('autoDmStatus').textContent = enabled ? 'ON' : 'OFF';
+        }
+        
+        async function saveAutomationSettings() {
+            showLoading('Saving settings...');
+            
+            const settings = {
+                welcomeMessage: document.getElementById('welcomeMessage').value,
+                autoReplyMessage: document.getElementById('autoReplyMessage').value,
+                dmDelay: parseInt(document.getElementById('dmDelay').value),
+                dailyLimit: parseInt(document.getElementById('dailyLimit').value),
+                autoDmEnabled: document.getElementById('autoDmToggle').checked
+            };
+            
+            const { error } = await supabase
+                .from('profiles')
+                .update({ automation_settings: settings })
+                .eq('id', currentUser.id);
+            
+            hideLoading();
+            
+            if (error) {
+                showToast('Error saving settings', 'error');
+            } else {
+                showToast('Settings saved successfully!');
+            }
+        }
+        
+        async function loadKeywords() {
+            const { data } = await supabase
+                .from('keywords')
+                .select('*')
+                .eq('user_id', currentUser.id);
+            
+            keywords = data || [];
+            renderKeywords();
+        }
+        
+        function renderKeywords() {
+            const container = document.getElementById('keywordList');
+            
+            if (keywords.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">No keywords added yet</p>';
+                return;
+            }
+            
+            container.innerHTML = keywords.map(kw => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div>
+                        <span class="font-medium text-purple-600">${kw.keyword}</span>
+                        <span class="text-gray-400 mx-2">→</span>
+                        <span class="text-gray-600">${kw.response}</span>
+                    </div>
+                    <button onclick="deleteKeyword('${kw.id}')" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        async function addKeyword() {
+            const keyword = document.getElementById('newKeyword').value.trim();
+            const response = document.getElementById('newResponse').value.trim();
+            
+            if (!keyword || !response) {
+                showToast('Please fill both fields', 'error');
+                return;
+            }
+            
+            const { error } = await supabase.from('keywords').insert({
+                user_id: currentUser.id,
+                keyword: keyword.toLowerCase(),
+                response: response
+            });
+            
+            if (error) {
+                showToast('Error adding keyword', 'error');
+            } else {
+                document.getElementById('newKeyword').value = '';
+                document.getElementById('newResponse').value = '';
+                loadKeywords();
+                showToast('Keyword added!');
+            }
+        }
+        
+        async function deleteKeyword(id) {
+            await supabase.from('keywords').delete().eq('id', id);
+            loadKeywords();
+            showToast('Keyword deleted');
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // INSTAGRAM ACCOUNT FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        function openConnectModal() {
+            document.getElementById('connectModal').classList.add('active');
+        }
+        
+        function closeConnectModal() {
+            document.getElementById('connectModal').classList.remove('active');
+        }
+        
+        async function connectInstagramAccount() {
+            const username = document.getElementById('igUsername').value.trim().replace('@', '');
+            const password = document.getElementById('igPassword').value;
+            
+            if (!username || !password) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+            
+            // Check if account already connected to another user
+            const { data: existing } = await supabase
+                .from('instagram_accounts')
+                .select('user_id')
+                .eq('username', username)
+                .single();
+            
+            if (existing && existing.user_id !== currentUser.id) {
+                showToast('This Instagram account is already connected to another user!', 'error');
+                return;
+            }
+            
+            showLoading('Connecting account...');
+            
+            try {
+                // Call API to verify and connect account
+                const response = await fetch('/api/instagram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'connect',
+                        username,
+                        password,
+                        userId: currentUser.id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeConnectModal();
+                    showToast('Instagram account connected!');
+                    loadConnectedAccounts();
+                } else {
+                    showToast(result.error || 'Failed to connect', 'error');
+                }
+            } catch (error) {
+                showToast('Connection failed', 'error');
+            }
+            
+            hideLoading();
+        }
+        
+        async function loadConnectedAccounts() {
+            const { data } = await supabase
+                .from('instagram_accounts')
+                .select('*')
+                .eq('user_id', currentUser.id);
+            
+            const container = document.getElementById('accountsList');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fab fa-instagram text-6xl mb-4 text-gray-300"></i>
+                        <p class="text-lg font-medium">No accounts connected</p>
+                        <p class="text-sm">Connect your Instagram account to start automation</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = data.map(acc => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-4">
+                        <img src="${acc.profile_pic || 'https://i.pravatar.cc/50'}" class="w-12 h-12 rounded-full">
+                        <div>
+                            <p class="font-medium text-gray-800">@${acc.username}</p>
+                            <p class="text-sm text-gray-500">${acc.followers || 0} followers</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 ${acc.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} rounded-full text-sm">
+                            ${acc.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                        <button onclick="disconnectAccount('${acc.id}')" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-unlink"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function disconnectAccount(id) {
+            if (!confirm('Are you sure you want to disconnect this account?')) return;
+            
+            await supabase.from('instagram_accounts').delete().eq('id', id);
+            loadConnectedAccounts();
+            showToast('Account disconnected');
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // BILLING & PAYMENT FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        function switchBillingType(type) {
+            billingType = type;
+            
+            const monthlyBtn = document.getElementById('billingMonthlyBtn');
+            const yearlyBtn = document.getElementById('billingYearlyBtn');
+            
+            if (type === 'monthly') {
+                monthlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
+                monthlyBtn.classList.remove('text-gray-600');
+                yearlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
+                yearlyBtn.classList.add('text-gray-600');
+            } else {
+                yearlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
+                yearlyBtn.classList.remove('text-gray-600');
+                monthlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
+                monthlyBtn.classList.add('text-gray-600');
+            }
+            
+            document.querySelectorAll('.plan-price').forEach(el => {
+                el.textContent = el.dataset[type];
+            });
+            
+            document.querySelectorAll('.plan-period').forEach(el => {
+                el.textContent = type === 'monthly' ? '/month' : '/year';
+            });
+        }
+        
+        function selectUpgradePlan(plan) {
+            selectedPlan = plan;
+            
+            const prices = {
+                starter: { monthly: 499, yearly: 4790 },
+                pro: { monthly: 999, yearly: 9590 },
+                enterprise: { monthly: 2499, yearly: 23990 }
+            };
+            
+            const planNames = { starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
+            
+            document.getElementById('paymentPlanName').textContent = planNames[plan] + ' Plan';
+            document.getElementById('paymentAmount').textContent = prices[plan][billingType];
+            
+            document.getElementById('paymentModal').classList.add('active');
+        }
+        
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            document.getElementById('upiSection').classList.add('hidden');
+        }
+        
+        function payWithRazorpay() {
+            const prices = {
+                starter: { monthly: 499, yearly: 4790 },
+                pro: { monthly: 999, yearly: 9590 },
+                enterprise: { monthly: 2499, yearly: 23990 }
+            };
+            
+            const amount = prices[selectedPlan][billingType] * 100; // Razorpay uses paise
+            
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: amount,
+                currency: 'INR',
+                name: 'InstaBot AI',
+                description: `${selectedPlan} Plan - ${billingType}`,
+                handler: async function(response) {
+                    // Verify payment and update plan
+                    await verifyRazorpayPayment(response.razorpay_payment_id);
+                },
+                prefill: {
+                    email: currentUser.email,
+                    name: userProfile.full_name
+                },
+                theme: {
+                    color: '#7c3aed'
+                }
+            };
+            
+            const rzp = new Razorpay(options);
+            rzp.open();
+        }
+        
+        async function verifyRazorpayPayment(paymentId) {
+            showLoading('Verifying payment...');
+            
+            try {
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'verify',
+                        paymentId,
+                        plan: selectedPlan,
+                        billingType,
+                        userId: currentUser.id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closePaymentModal();
+                    showToast('Payment successful! Plan upgraded.');
+                    await loadUserProfile();
+                } else {
+                    showToast('Payment verification failed', 'error');
+                }
+            } catch (error) {
+                showToast('Error verifying payment', 'error');
+            }
+            
+            hideLoading();
+        }
+        
+        function payWithUPI() {
+            document.getElementById('upiSection').classList.remove('hidden');
+            
+            const prices = {
+                starter: { monthly: 499, yearly: 4790 },
+                pro: { monthly: 999, yearly: 9590 },
+                enterprise: { monthly: 2499, yearly: 23990 }
+            };
+            
+            const amount = prices[selectedPlan][billingType];
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=InstaBot%20AI&am=${amount}&cu=INR`;
+            
+            document.getElementById('upiQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+        }
+        
+        async function verifyUPI() {
+            const txnId = document.getElementById('upiTxnId').value.trim();
+            
+            if (!txnId) {
+                showToast('Please enter transaction ID', 'error');
+                return;
+            }
+            
+            showLoading('Verifying payment...');
+            
+            try {
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'verify_upi',
+                        txnId,
+                        plan: selectedPlan,
+                        billingType,
+                        userId: currentUser.id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closePaymentModal();
+                    showToast('Payment submitted for verification. Plan will be activated within 24 hours.');
+                } else {
+                    showToast(result.error || 'Verification failed', 'error');
+                }
+            } catch (error) {
+                showToast('Error submitting payment', 'error');
+            }
+            
+            hideLoading();
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // PROFILE & SETTINGS
+        // ══════════════════════════════════════════════════════════════════
+        async function updateProfile() {
+            showLoading('Updating profile...');
+            
+            const name = document.getElementById('settingsName').value;
+            const phone = document.getElementById('settingsPhone')?.value;
+            
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: name,
+                    phone: phone
+                })
+                .eq('id', currentUser.id);
+            
+            hideLoading();
+            
+            if (error) {
+                showToast('Error updating profile', 'error');
+            } else {
+                showToast('Profile updated!');
+                await loadUserProfile();
+            }
+        }
+        
+        async function deleteAccount() {
+            if (!confirm('Are you sure? This action cannot be undone!')) return;
+            if (!confirm('All your data will be permanently deleted. Continue?')) return;
+            
+            showLoading('Deleting account...');
+            
+            await supabase.from('profiles').delete().eq('id', currentUser.id);
+            await supabase.from('instagram_accounts').delete().eq('user_id', currentUser.id);
+            await supabase.from('keywords').delete().eq('user_id', currentUser.id);
+            await supabase.auth.signOut();
+            
+            window.location.href = 'index.html';
+        }
+        
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // CHARTS
+        // ══════════════════════════════════════════════════════════════════
+        function initCharts() {
+            // DM Activity Chart
+            const dmCtx = document.getElementById('dmChart')?.getContext('2d');
+            if (dmCtx) {
+                new Chart(dmCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'DMs Sent',
+                            data: [12, 19, 15, 25, 22, 30, 28],
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+            
+            // Response Chart
+            const respCtx = document.getElementById('responseChart')?.getContext('2d');
+            if (respCtx) {
+                new Chart(respCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Replied', 'No Reply', 'Pending'],
+                        datasets: [{
+                            data: [65, 25, 10],
+                                                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }
+        
+        function initAnalyticsCharts() {
+            // Performance Chart
+            const perfCtx = document.getElementById('performanceChart')?.getContext('2d');
+            if (perfCtx) {
+                new Chart(perfCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'DMs Sent',
+                            data: [150, 220, 180, 290],
+                            backgroundColor: '#7c3aed'
+                        }, {
+                            label: 'Replies Received',
+                            data: [80, 120, 95, 160],
+                            backgroundColor: '#ec4899'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+            
+            // Message Type Chart
+            const msgCtx = document.getElementById('messageTypeChart')?.getContext('2d');
+            if (msgCtx) {
+                new Chart(msgCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Welcome DMs', 'Auto Replies', 'Keyword Replies', 'Manual'],
+                        datasets: [{
+                            data: [40, 30, 20, 10],
+                            backgroundColor: ['#7c3aed', '#ec4899', '#10b981', '#f59e0b']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        }
+        
+        // ══════════════════════════════════════════════════════════════════
+        // UTILITY FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        function showLoading(text = 'Please wait...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingModal').classList.add('active');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.remove('active');
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+            
+            msg.textContent = message;
+            icon.className = type === 'success' 
+                ? 'fas fa-check-circle text-green-500'
+                : 'fas fa-exclamation-circle text-red-500';
+            
+            toast.classList.remove('translate-y-full', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+        
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#userDropdown') && !e.target.closest('button')) {
+                document.getElementById('userDropdown')?.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
