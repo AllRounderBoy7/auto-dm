@@ -1635,1019 +1635,128 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-</div>
-
-<!-- Razorpay Script -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
 <script>
-    // ══════════════════════════════════════════════════════════════════
-    // 🔧 CONFIGURATION
-    // ══════════════════════════════════════════════════════════════════
-    const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
-    
-    // 💰 RAZORPAY - Add your Razorpay Key here
-    const RAZORPAY_KEY = 'rzp_test_XXXXXXXXXX'; // <- REPLACE WITH YOUR KEY
-    
-    // 💰 UPI - Add your UPI ID here
-    const UPI_ID = 'yourstore@upi'; // <- REPLACE WITH YOUR UPI ID
-    
-    // 👤 ADMIN CREDENTIALS
-    const ADMIN_EMAIL = 'sahanapraveen2006@gmail.com';
-    const ADMIN_PASSWORD = 'rudra3745';
-    const ADMIN_EMAILS = ['sahanapraveen2006@gmail.com'];
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // ══════════════════════════════════════════════════════════════════
-    // GLOBAL VARIABLES
-    // ══════════════════════════════════════════════════════════════════
-    let currentUser = null;
-    let userProfile = null;
-    let isAdmin = false;
-    let selectedPlan = null;
-    let billingType = 'monthly';
-    let keywords = [];
-    let currentUserPage = 1;
-    const usersPerPage = 10;
-    let allUsers = [];
-    let allPayments = [];
-    
-    // ══════════════════════════════════════════════════════════════════
-    // INITIALIZATION
-    // ══════════════════════════════════════════════════════════════════
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Check if user is already logged in
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            await handleUserLogin(user);
-        }
-        
-        // Setup event listeners
-        setupEventListeners();
-    });
-    
-    function setupEventListeners() {
-        // Navigation links for user dashboard
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = link.dataset.section;
-                if (section) {
-                    showSection(section);
-                    closeSidebar();
-                }
-            });
-        });
+// ══════════════════════════════════════════════════════════════════
+// 🔧 API ENDPOINTS - YAHAN APNA VERCEL DOMAIN DALO
+// ══════════════════════════════════════════════════════════════════
+const API_BASE_URL = 'https://instabotme.vercel.app'; // ← APNA VERCEL URL DALO
+
+// ══════════════════════════════════════════════════════════════════
+// PHONEPE PAYMENT INTEGRATION
+// ══════════════════════════════════════════════════════════════════
+async function payWithPhonePe() {
+    if (!currentUser || !selectedPlan) {
+        showToast('Please login and select a plan', 'error');
+        return;
     }
     
-    // ══════════════════════════════════════════════════════════════════
-    // PAGE NAVIGATION
-    // ══════════════════════════════════════════════════════════════════
-    function showLandingPage() {
-        document.getElementById('landingPage').classList.remove('hidden');
-        document.getElementById('userDashboard').classList.add('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
-    }
+    showLoading('Creating payment...');
     
-    function showUserDashboard() {
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('userDashboard').classList.remove('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
-    }
-    
-    function showAdminPanel() {
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('userDashboard').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // USER AUTHENTICATION
-    // ══════════════════════════════════════════════════════════════════
-    async function handleUserLogin(user) {
-        currentUser = user;
-        isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-        
-        if (isAdmin) {
-            document.getElementById('adminNavLink').classList.remove('hidden');
-        }
-        
-        await loadUserProfile();
-        showUserDashboard();
-        initCharts();
-    }
-    
-    async function loadUserProfile() {
-        try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
-            
-            if (data) {
-                userProfile = data;
-                updateUI();
-            } else {
-                // Create profile if doesn't exist
-                const newProfile = {
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    full_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-                    plan: 'free',
-                    dms_used: 0,
-                    dms_limit: 100,
-                    is_admin: isAdmin,
-                    created_at: new Date().toISOString()
-                };
-                
-                await supabase.from('profiles').insert(newProfile);
-                userProfile = newProfile;
-                updateUI();
-            }
-        } catch (error) {
-            console.error('Profile load error:', error);
-        }
-    }
-    
-    function updateUI() {
-        if (!userProfile) return;
-        
-        const name = userProfile.full_name || userProfile.email?.split('@')[0] || 'User';
-        
-        // Update user info
-        document.getElementById('userName').textContent = name;
-        document.getElementById('settingsName').value = userProfile.full_name || '';
-        document.getElementById('settingsEmail').value = userProfile.email || '';
-        document.getElementById('dropdownEmail').textContent = userProfile.email || '';
-        
-        // Update avatar
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7c3aed&color=fff`;
-        document.getElementById('userAvatar').src = avatarUrl;
-        document.getElementById('settingsAvatar').src = avatarUrl;
-        
-        // Plan names and limits
-        const planNames = { free: 'Free Plan', starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
-        const planLimits = { free: 100, starter: 500, pro: 2000, enterprise: 999999 };
-        const planLabel = planNames[userProfile.plan] || 'Free Plan';
-        
-        // Update plan displays
-        document.getElementById('currentPlan').textContent = planLabel;
-        document.getElementById('billingPlanName').textContent = planLabel;
-        document.getElementById('dropdownRole').textContent = planLabel;
-        document.getElementById('dmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('dmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
-        
-        // Update billing section
-        document.getElementById('billingDmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('billingDmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
-        
-        // Usage bar
-        const limit = planLimits[userProfile.plan] || 100;
-        const usagePercent = userProfile.plan === 'enterprise' ? 0 : ((userProfile.dms_used || 0) / limit) * 100;
-        document.getElementById('usageBar').style.width = `${Math.min(usagePercent, 100)}%`;
-        
-        // Update stats
-        document.getElementById('totalDms').textContent = userProfile.dms_used || 0;
-        document.getElementById('allTimeDms').textContent = userProfile.dms_used || 0;
-        
-        // Load automation settings if exists
-        if (userProfile.automation_settings) {
-            const settings = userProfile.automation_settings;
-            document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
-            document.getElementById('autoReplyMessage').value = settings.autoReplyMessage || '';
-            document.getElementById('dmDelay').value = settings.dmDelay || 30;
-            document.getElementById('dailyLimit').value = settings.dailyLimit || 50;
-            document.getElementById('autoDmToggle').checked = settings.autoDmEnabled || false;
-            document.getElementById('autoDmStatus').textContent = settings.autoDmEnabled ? 'ON' : 'OFF';
-            document.getElementById('reelCommentToggle').checked = settings.reelCommentEnabled || false;
-            document.getElementById('reelCommentStatus').textContent = settings.reelCommentEnabled ? 'ON' : 'OFF';
-            document.getElementById('reelCommentReply').value = settings.reelCommentReply || '';
-        }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // LOGIN/SIGNUP FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function openLoginModal() { 
-        document.getElementById('loginModal').classList.add('active'); 
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeLoginModal() { 
-        document.getElementById('loginModal').classList.remove('active'); 
-        document.body.style.overflow = '';
-    }
-    
-    function showSignup() { 
-        document.getElementById('loginForm').classList.add('hidden'); 
-        document.getElementById('signupForm').classList.remove('hidden'); 
-    }
-    
-    function showLogin() { 
-        document.getElementById('signupForm').classList.add('hidden'); 
-        document.getElementById('loginForm').classList.remove('hidden'); 
-    }
-    
-    function showAdminLogin() {
-        document.getElementById('adminLoginModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeAdminLoginModal() {
-        document.getElementById('adminLoginModal').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    async function loginWithEmail() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        
-        if (!email || !password) { 
-            showToast('Please fill all fields', 'error'); 
-            return; 
-        }
-        
-        showLoading('Logging in...');
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            
-            await handleUserLogin(data.user);
-            closeLoginModal();
-            showToast('Login successful!');
-        } catch (error) {
-            showToast(error.message, 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    async function signupWithEmail() {
-        const name = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        
-        if (!name || !email || !password) { 
-            showToast('Please fill all fields', 'error'); 
-            return; 
-        }
-        
-        showLoading('Creating account...');
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email, password,
-                options: { data: { full_name: name } }
-            });
-            if (error) throw error;
-            
-            // Create profile
-            await supabase.from('profiles').insert({
-                id: data.user.id,
-                email, full_name: name,
-                plan: 'free', dms_limit: 100, dms_used: 0,
-                status: 'active', created_at: new Date().toISOString()
-            });
-            
-            showToast('Account created! Please check your email.');
-            setTimeout(() => showLogin(), 2000);
-        } catch (error) {
-            showToast(error.message, 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    async function loginWithGoogle() {
-        showLoading('Redirecting to Google...');
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
-            if (error) throw error;
-        } catch (error) {
-            showToast(error.message, 'error');
-            hideLoading();
-        }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // ADMIN FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    async function adminLogin() {
-        const email = document.getElementById('adminEmail').value;
-        const password = document.getElementById('adminPassword').value;
-        
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-            closeAdminLoginModal();
-            showAdminPanel();
-            loadAdminData();
-            showToast('Welcome, Admin!');
-            return;
-        }
-        
-        // Also check Supabase for admin users
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            
-            if (error) throw error;
-            
-            if (ADMIN_EMAILS.includes(email.toLowerCase())) {
-                closeAdminLoginModal();
-                showAdminPanel();
-                loadAdminData();
-                showToast('Welcome, Admin!');
-            } else {
-                showToast('Not an admin account', 'error');
-            }
-        } catch (error) {
-            showToast('Invalid credentials', 'error');
-        }
-    }
-    
-    function adminLogout() {
-        showLandingPage();
-        showToast('Admin logged out');
-    }
-    
-    function showAdminSection(section) {
-        // Hide all sections
-        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.getElementById(`${section}Section`).classList.remove('hidden');
-        
-        // Update nav links
-        document.querySelectorAll('.admin-nav').forEach(nav => {
-            nav.classList.remove('bg-red-600');
-            nav.classList.add('hover:bg-gray-700');
-        });
-        event.target.closest('.admin-nav')?.classList.add('bg-red-600');
-        event.target.closest('.admin-nav')?.classList.remove('hover:bg-gray-700');
-    }
-    
-    async function loadAdminData() {
-        showLoading('Loading admin data...');
-        
-        try {
-            // Load users
-            const { data: users } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            allUsers = users || [];
-            
-            // Load payments
-            const { data: payments } = await supabase
-                .from('payments')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            allPayments = payments || [];
-            
-            // Update stats
-            document.getElementById('adminTotalUsers2').textContent = allUsers.length;
-            document.getElementById('adminActiveSubscriptions').textContent = allUsers.filter(u => u.plan !== 'free').length;
-            
-            const totalRevenue = allPayments
-                .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + (p.amount || 0), 0);
-            document.getElementById('adminTotalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
-            
-            const totalDms = allUsers.reduce((sum, u) => sum + (u.dms_used || 0), 0);
-            document.getElementById('adminTotalDmsSent').textContent = totalDms.toLocaleString();
-            
-            // Render tables
-            renderUsersTableAdmin();
-            renderPaymentsTableAdmin();
-            
-            // Load plan prices
-            await loadPlanPrices();
-            
-            // Initialize charts
-            initAdminCharts();
-            
-        } catch (error) {
-            console.error('Admin data error:', error);
-            showToast('Error loading admin data', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function renderUsersTableAdmin() {
-        const tbody = document.getElementById('adminUsersTable2');
-        
-        if (!allUsers || allUsers.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">No users found</td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tbody.innerHTML = allUsers.slice(0, 50).map(user => `
-            <tr class="hover:bg-gray-700/50">
-                <td class="px-6 py-4">
-                    <div class="flex items-center space-x-3">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'U')}&background=7c3aed&color=fff&size=32" class="w-8 h-8 rounded-full">
-                        <span class="font-medium">${escapeHtml(user.full_name || 'Unknown')}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-gray-300">${escapeHtml(user.email)}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                        user.plan === 'enterprise' ? 'bg-green-100 text-green-600' :
-                        user.plan === 'pro' ? 'bg-purple-100 text-purple-600' :
-                        user.plan === 'starter' ? 'bg-blue-100 text-blue-600' :
-                        'bg-gray-100 text-gray-600'
-                    }">${user.plan?.toUpperCase() || 'FREE'}</span>
-                </td>
-                <td class="px-6 py-4">${user.dms_used || 0}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 rounded-full text-xs font-medium ${user.status === 'blocked' ? 'bg-red-600/20 text-red-400' : 'bg-green-600/20 text-green-400'}">
-                        ${user.status === 'blocked' ? 'Blocked' : 'Active'}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-gray-300">${new Date(user.created_at).toLocaleDateString()}</td>
-                <td class="px-6 py-4">
-                    <button onclick="adminEditUser('${user.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="adminDeleteUser('${user.id}')" class="text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-    
-    async function loadPlanPrices() {
-        try {
-            const { data } = await supabase
-                .from('settings')
-                .select('*')
-                .eq('key', 'plan_prices')
-                .single();
-            
-            if (data?.value) {
-                const prices = data.value;
-                document.getElementById('starterMonthly').value = prices.starter?.monthly || 499;
-                document.getElementById('starterYearly').value = prices.starter?.yearly || 4790;
-                document.getElementById('starterDmLimit').value = prices.starter?.dmLimit || 500;
-                document.getElementById('starterAccountLimit').value = prices.starter?.accountLimit || 1;
-                
-                document.getElementById('proMonthly').value = prices.pro?.monthly || 999;
-                document.getElementById('proYearly').value = prices.pro?.yearly || 9590;
-                document.getElementById('proDmLimit').value = prices.pro?.dmLimit || 2000;
-                document.getElementById('proAccountLimit').value = prices.pro?.accountLimit || 3;
-                
-                document.getElementById('enterpriseMonthly').value = prices.enterprise?.monthly || 2499;
-                document.getElementById('enterpriseYearly').value = prices.enterprise?.yearly || 23990;
-                document.getElementById('enterpriseDmLimit').value = prices.enterprise?.dmLimit || 999999;
-                document.getElementById('enterpriseAccountLimit').value = prices.enterprise?.accountLimit || 10;
-            }
-        } catch (error) {
-            console.error('Load plan prices error:', error);
-        }
-    }
-    
-    async function savePlanPrices() {
-        showLoading('Saving plan prices...');
-        
-        const prices = {
-            starter: {
-                monthly: parseInt(document.getElementById('starterMonthly').value),
-                yearly: parseInt(document.getElementById('starterYearly').value),
-                dmLimit: parseInt(document.getElementById('starterDmLimit').value),
-                accountLimit: parseInt(document.getElementById('starterAccountLimit').value)
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.access_token}`
             },
-            pro: {
-                monthly: parseInt(document.getElementById('proMonthly').value),
-                yearly: parseInt(document.getElementById('proYearly').value),
-                dmLimit: parseInt(document.getElementById('proDmLimit').value),
-                accountLimit: parseInt(document.getElementById('proAccountLimit').value)
+            body: JSON.stringify({
+                action: 'create-payment',
+                userId: currentUser.id,
+                plan: selectedPlan,
+                billingType: billingType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Redirect to PhonePe payment page
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = data.redirectUrl;
+            
+            const payloadInput = document.createElement('input');
+            payloadInput.type = 'hidden';
+            payloadInput.name = 'request';
+            payloadInput.value = data.data.base64Payload;
+            form.appendChild(payloadInput);
+            
+            const checksumInput = document.createElement('input');
+            checksumInput.type = 'hidden';
+            checksumInput.name = 'X-VERIFY';
+            checksumInput.value = data.data.checksum;
+            form.appendChild(checksumInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            throw new Error(data.error || 'Payment failed');
+        }
+    } catch (error) {
+        hideLoading();
+        showToast(error.message, 'error');
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UPDATE PAYMENT MODAL IN index.html
+// Replace Razorpay button with PhonePe button in your payment modal:
+// ══════════════════════════════════════════════════════════════════
+/*
+CHANGE THIS IN YOUR index.html PAYMENT MODAL:
+<button onclick="payWithRazorpay()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+    <img src="https://razorpay.com/favicon.png" class="w-5 h-5" alt="Razorpay"> Pay with Razorpay
+</button>
+
+REPLACE WITH:
+<button onclick="payWithPhonePe()" class="w-full py-4 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition flex items-center justify-center gap-2">
+    <i class="fas fa-mobile-alt mr-2"></i> Pay with PhonePe
+</button>
+*/
+
+// ══════════════════════════════════════════════════════════════════
+// ADMIN API FUNCTIONS
+// ══════════════════════════════════════════════════════════════════
+async function callAdminAPI(action, data = {}) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.access_token}`,
+                'X-Master-Key': MASTER_KEY
             },
-            enterprise: {
-                monthly: parseInt(document.getElementById('enterpriseMonthly').value),
-                yearly: parseInt(document.getElementById('enterpriseYearly').value),
-                dmLimit: parseInt(document.getElementById('enterpriseDmLimit').value),
-                accountLimit: parseInt(document.getElementById('enterpriseAccountLimit').value)
-            }
-        };
-        
-        try {
-            const { error } = await supabase
-                .from('settings')
-                .upsert({
-                    key: 'plan_prices',
-                    value: prices,
-                    updated_at: new Date().toISOString()
-                });
-            
-            if (error) throw error;
-            
-            showToast('Plan prices updated successfully!');
-        } catch (error) {
-            showToast('Error saving prices', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function resetPlanPrices() {
-        document.getElementById('starterMonthly').value = 499;
-        document.getElementById('starterYearly').value = 4790;
-        document.getElementById('starterDmLimit').value = 500;
-        document.getElementById('starterAccountLimit').value = 1;
-        
-        document.getElementById('proMonthly').value = 999;
-        document.getElementById('proYearly').value = 9590;
-        document.getElementById('proDmLimit').value = 2000;
-        document.getElementById('proAccountLimit').value = 3;
-        
-        document.getElementById('enterpriseMonthly').value = 2499;
-        document.getElementById('enterpriseYearly').value = 23990;
-        document.getElementById('enterpriseDmLimit').value = 999999;
-        document.getElementById('enterpriseAccountLimit').value = 10;
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // USER DASHBOARD FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('active');
-    }
-    
-    function closeSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-    }
-    
-    function toggleUserDropdown() {
-        document.getElementById('userDropdown').classList.toggle('hidden');
-    }
-    
-    function closeDropdown() {
-        document.getElementById('userDropdown').classList.add('hidden');
-    }
-    
-    function showSection(section) {
-        // Hide all sections
-        const sections = ['dashboard', 'automation', 'messages', 'analytics', 'accounts', 'billing', 'settings', 'admin'];
-        sections.forEach(s => {
-            const el = document.getElementById(`${s}Section`);
-            if (el) el.classList.add('hidden');
+            body: JSON.stringify({ action, ...data })
         });
         
-        // Show selected section
-        const targetSection = document.getElementById(`${section}Section`);
-        if (targetSection) {
-            targetSection.classList.remove('hidden');
-        }
-        
-        // Update nav links
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-            if (link.dataset.section !== 'admin') {
-                link.classList.add('text-gray-600');
-            }
-        });
-        
-        const activeLink = document.querySelector(`.nav-link[data-section="${section}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-            activeLink.classList.remove('text-gray-600');
-        }
-        
-        // Update page title
-        const titles = {
-            dashboard: 'Dashboard',
-            automation: 'Automation',
-            messages: 'Messages',
-            analytics: 'Analytics',
-            accounts: 'Instagram Accounts',
-            billing: 'Billing',
-            settings: 'Settings',
-            admin: 'Admin Panel'
-        };
-        document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
+        return await response.json();
+    } catch (error) {
+        throw error;
     }
-    
-    function toggleAutoDm() {
-        const enabled = document.getElementById('autoDmToggle').checked;
-        document.getElementById('autoDmStatus').textContent = enabled ? 'ON' : 'OFF';
+}
+
+// Example admin functions
+async function loadAdminData() {
+    try {
+        const stats = await callAdminAPI('get-stats');
+        const users = await callAdminAPI('get-users', { page: 1, limit: 50 });
+        const payments = await callAdminAPI('get-payments', { status: 'all' });
+        
+        // Update your admin dashboard with this data
+        updateAdminDashboard(stats, users, payments);
+    } catch (error) {
+        showToast('Error loading admin data', 'error');
     }
-    
-    function toggleReelComment() {
-        const enabled = document.getElementById('reelCommentToggle').checked;
-        document.getElementById('reelCommentStatus').textContent = enabled ? 'ON' : 'OFF';
+}
+
+async function updatePlanPrices(prices) {
+    try {
+        const result = await callAdminAPI('update-prices', { prices });
+        showToast(result.message);
+    } catch (error) {
+        showToast('Error updating prices', 'error');
     }
-    
-    async function saveAutomationSettings() {
-        showLoading('Saving settings...');
-        
-        const settings = {
-            welcomeMessage: document.getElementById('welcomeMessage').value,
-            autoReplyMessage: document.getElementById('autoReplyMessage').value,
-            dmDelay: parseInt(document.getElementById('dmDelay').value) || 30,
-            dailyLimit: parseInt(document.getElementById('dailyLimit').value) || 50,
-            autoDmEnabled: document.getElementById('autoDmToggle').checked,
-            reelCommentEnabled: document.getElementById('reelCommentToggle').checked,
-            reelCommentReply: document.getElementById('reelCommentReply').value
-        };
-        
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ automation_settings: settings })
-                .eq('id', currentUser.id);
-            
-            if (error) throw error;
-            
-            userProfile.automation_settings = settings;
-            showToast('Settings saved successfully!');
-        } catch (err) {
-            showToast('Error saving settings', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function addReelKeyword() {
-        const keyword = document.getElementById('newReelKeyword').value.trim();
-        const response = document.getElementById('newReelResponse').value.trim();
-        
-        if (!keyword || !response) {
-            showToast('Please fill both keyword and response', 'error');
-            return;
-        }
-        
-        // Add to UI
-        const list = document.getElementById('reelKeywordsList');
-        const newItem = document.createElement('div');
-        newItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-        newItem.innerHTML = `
-            <span class="font-medium">"${escapeHtml(keyword)}"</span>
-            <span class="text-sm text-gray-600">Reply: ${escapeHtml(response)}</span>
-            <button class="text-red-500 hover:text-red-700" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
-        `;
-        list.appendChild(newItem);
-        
-        // Clear inputs
-        document.getElementById('newReelKeyword').value = '';
-        document.getElementById('newReelResponse').value = '';
-        
-        showToast('Keyword added');
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // BILLING FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function switchBilling(type) {
-        billingType = type;
-        const monthlyBtn = document.getElementById('monthlyBtn');
-        const yearlyBtn = document.getElementById('yearlyBtn');
-        
-        if (type === 'monthly') {
-            monthlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.remove('text-gray-600');
-            yearlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.add('text-gray-600');
-        } else {
-            yearlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.remove('text-gray-600');
-            monthlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.add('text-gray-600');
-        }
-        
-        document.querySelectorAll('.price-amount').forEach(el => el.textContent = el.dataset[type]);
-        document.querySelectorAll('.billing-text').forEach(el => el.textContent = type === 'monthly' ? '/month' : '/year');
-    }
-    
-    function selectPlan(plan) {
-        openLoginModal();
-        showToast(`Please login to select ${plan} plan`);
-    }
-    
-    function switchBillingType(type) {
-        billingType = type;
-        
-        const monthlyBtn = document.getElementById('billingMonthlyBtn');
-        const yearlyBtn = document.getElementById('billingYearlyBtn');
-        
-        if (type === 'monthly') {
-            monthlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.remove('text-gray-600');
-            yearlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.add('text-gray-600');
-        } else {
-            yearlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.remove('text-gray-600');
-            monthlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.add('text-gray-600');
-        }
-        
-        document.querySelectorAll('.plan-price').forEach(el => {
-            el.textContent = el.dataset[type];
-        });
-        
-        document.querySelectorAll('.plan-period').forEach(el => {
-            el.textContent = type === 'monthly' ? '/month' : '/year';
-        });
-    }
-    
-    function selectUpgradePlan(plan) {
-        selectedPlan = plan;
-        
-        const prices = {
-            starter: { monthly: 499, yearly: 4790 },
-            pro: { monthly: 999, yearly: 9590 },
-            enterprise: { monthly: 2499, yearly: 23990 }
-        };
-        
-        const planNames = { starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
-        
-        document.getElementById('paymentPlanName').textContent = planNames[plan] + ' Plan';
-        document.getElementById('paymentAmount').textContent = prices[plan][billingType];
-        document.getElementById('paymentPeriod').textContent = billingType === 'monthly' ? 'per month' : 'per year';
-        
-        document.getElementById('paymentModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closePaymentModal() {
-        document.getElementById('paymentModal').classList.remove('active');
-        document.body.style.overflow = '';
-        document.getElementById('upiSection').classList.add('hidden');
-        document.getElementById('upiTxnId').value = '';
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // UTILITY FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function toggleMobileMenu() { 
-        document.getElementById('mobileMenu').classList.toggle('hidden'); 
-    }
-    
-    function toggleFaq(button) {
-        const content = button.nextElementSibling;
-        const icon = button.querySelector('i');
-        content.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
-    }
-    
-    function showLoading(text = 'Please wait...') {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingModal').classList.add('active');
-    }
-    
-    function hideLoading() {
-        document.getElementById('loadingModal').classList.remove('active');
-    }
-    
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toastIcon');
-        const msg = document.getElementById('toastMessage');
-        
-        msg.textContent = message;
-        
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle text-green-500 text-xl';
-        } else if (type === 'error') {
-            icon.className = 'fas fa-exclamation-circle text-red-500 text-xl';
-        } else {
-            icon.className = 'fas fa-info-circle text-blue-500 text-xl';
-        }
-        
-        toast.classList.remove('hide');
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            hideToast();
-        }, 4000);
-    }
-    
-    function hideToast() {
-        const toast = document.getElementById('toast');
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-    }
-    
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    async function logout() {
-        showLoading('Logging out...');
-        try {
-            await supabase.auth.signOut();
-            showLandingPage();
-            showToast('Logged out successfully');
-        } catch (err) {
-            showLandingPage();
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    async function updateProfile() {
-        const name = document.getElementById('settingsName').value.trim();
-        const phone = document.getElementById('settingsPhone').value.trim();
-        
-        if (!name) {
-            showToast('Name cannot be empty', 'error');
-            return;
-        }
-        
-        showLoading('Updating profile...');
-        
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    full_name: name,
-                    phone: phone,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', currentUser.id);
-            
-            if (error) throw error;
-            
-            showToast('Profile updated successfully!');
-            await loadUserProfile();
-        } catch (err) {
-            showToast('Error updating profile', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    async function deleteAccount() {
-        if (!confirm('⚠️ Are you sure you want to delete your account?\n\nThis action CANNOT be undone!')) return;
-        
-        showLoading('Deleting account...');
-        
-        try {
-            await supabase.from('profiles').delete().eq('id', currentUser.id);
-            await supabase.auth.signOut();
-            showLandingPage();
-            showToast('Account deleted successfully');
-        } catch (err) {
-            hideLoading();
-            showToast('Error deleting account', 'error');
-        }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // CHART INITIALIZATION
-    // ══════════════════════════════════════════════════════════════════
-    function initCharts() {
-        // DM Activity Chart
-        const dmCtx = document.getElementById('dmChart')?.getContext('2d');
-        if (dmCtx) {
-            new Chart(dmCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'DMs Sent',
-                        data: [12, 19, 15, 25, 22, 30, 28],
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointBackgroundColor: '#7c3aed',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-        
-        // Response Chart
-        const respCtx = document.getElementById('responseChart')?.getContext('2d');
-        if (respCtx) {
-            new Chart(respCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Replied', 'No Reply', 'Pending'],
-                    datasets: [{
-                        data: [65, 25, 10],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        } 
-                    },
-                    cutout: '60%'
-                }
-            });
-        }
-    }
-    
-    function initAdminCharts() {
-        // User Growth Chart
-        const userCtx = document.getElementById('userGrowthChart')?.getContext('2d');
-        if (userCtx) {
-            new Chart(userCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Users',
-                        data: [50, 120, 200, 350, 500, 750],
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
-            });
-        }
-        
-        // Revenue Chart
-        const revCtx = document.getElementById('revenueChart')?.getContext('2d');
-        if (revCtx) {
-            new Chart(revCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Revenue (₹)',
-                        data: [15000, 25000, 40000, 55000, 75000, 95000],
-                        backgroundColor: '#ec4899'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
-            });
-        }
-    }
-    
-    // Handle escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeLoginModal();
-            closeAdminLoginModal();
-            closeConnectModal();
-            closePaymentModal();
-            closeSidebar();
-        }
-    });
-    
-    // Initialize billing toggle
-    switchBilling('monthly');
-    switchBillingType('monthly');
-</script>
+} 
+    </script>        
 </body>
 </html>
