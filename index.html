@@ -1,1612 +1,962 @@
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-3 text-sm font-medium text-gray-600">User</th>
-                                    <th class="p-3 text-sm font-medium text-gray-600">Email</th>
-                                    <th class="p-3 text-sm font-medium text-gray-600">Plan</th>
-                                    <th class="p-3 text-sm font-medium text-gray-600">DMs Used</th>
-                                    <th class="p-3 text-sm font-medium text-gray-600">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTable" class="divide-y">
-                                <tr>
-                                    <td colspan="5" class="p-4 text-center text-gray-500">Loading users...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Plan Management -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">Plan Management</h3>
-                        <button onclick="showPlanEditor()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                            <i class="fas fa-edit mr-2"></i> Edit Plans
-                        </button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaBot AI - Automated Instagram Marketing</title>
+    
+    <!-- CSS Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f3f4f6;
+            scroll-behavior: smooth;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loaders & Animations */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #7c3aed;
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Transitions */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c4b5fd; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a78bfa; 
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #7c3aed, #db2777);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- ============================== -->
+    <!-- LANDING PAGE -->
+    <!-- ============================== -->
+    <div id="landingPage" class="min-h-screen bg-white">
+        <!-- Navigation -->
+        <nav class="fixed w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20 items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 bg-gradient-to-tr from-purple-600 to-pink-500 rounded-xl flex items-center justify-center text-white text-xl">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">InstaBot</span>
                     </div>
                     
-                    <div class="grid sm:grid-cols-3 gap-4">
-                        <div class="p-4 bg-gray-50 rounded-xl">
-                            <h4 class="font-semibold text-gray-800">Starter Plan</h4>
-                            <p class="text-2xl font-bold text-purple-600">₹499</p>
-                            <p class="text-sm text-gray-500">500 DMs/month</p>
-                            <p class="text-sm text-gray-500">1 Account</p>
-                        </div>
-                        <div class="p-4 bg-purple-50 rounded-xl">
-                            <h4 class="font-semibold text-gray-800">Pro Plan</h4>
-                            <p class="text-2xl font-bold text-purple-600">₹999</p>
-                            <p class="text-sm text-gray-500">2000 DMs/month</p>
-                            <p class="text-sm text-gray-500">3 Accounts</p>
-                        </div>
-                        <div class="p-4 bg-green-50 rounded-xl">
-                            <h4 class="font-semibold text-gray-800">Enterprise</h4>
-                            <p class="text-2xl font-bold text-purple-600">₹2499</p>
-                            <p class="text-sm text-gray-500">Unlimited DMs</p>
-                            <p class="text-sm text-gray-500">10 Accounts</p>
-                        </div>
+                    <div class="hidden md:flex items-center gap-8">
+                        <a href="#features" class="text-gray-500 hover:text-purple-600 font-medium transition">Features</a>
+                        <a href="#pricing" class="text-gray-500 hover:text-purple-600 font-medium transition">Pricing</a>
+                        <button onclick="openLoginModal()" class="text-gray-900 font-semibold hover:text-purple-600 transition">Login</button>
+                        <button onclick="openLoginModal()" class="px-6 py-2.5 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transition shadow-lg shadow-purple-500/20">
+                            Get Started
+                        </button>
                     </div>
-                </div>
-                
-                <!-- Pending Payments -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pending UPI Payments</h3>
-                    <div id="pendingPayments" class="space-y-3">
-                        <p class="text-gray-500 text-center py-4">No pending payments</p>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-</div>
 
-<!-- ============================== -->
-<!-- ADMIN PANEL -->
-<!-- ============================== -->
-<div id="adminPanel" class="hidden min-h-screen bg-gray-900 text-white">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-800 p-6">
-            <div class="flex items-center space-x-2 mb-8">
-                <div class="w-10 h-10 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-xl"></i>
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden text-gray-600 text-2xl" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
-                <span class="text-xl font-bold">Admin Panel</span>
             </div>
             
-            <nav class="space-y-2">
-                <a href="#" onclick="showAdminSection('overview')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-600">
-                    <i class="fas fa-chart-pie w-5"></i><span>Overview</span>
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden bg-white border-t p-4 absolute w-full shadow-lg">
+                <a href="#features" class="block py-3 text-gray-600">Features</a>
+                <a href="#pricing" class="block py-3 text-gray-600">Pricing</a>
+                <button onclick="openLoginModal()" class="block w-full text-left py-3 text-purple-600 font-semibold">Login</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden relative">
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-purple-200 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-pink-200 rounded-full blur-3xl opacity-30"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+                <div class="text-center max-w-3xl mx-auto">
+                    <span class="inline-block py-1 px-3 rounded-full bg-purple-50 border border-purple-100 text-purple-600 text-sm font-semibold mb-6">
+                        🚀 #1 Instagram Automation Tool
+                    </span>
+                    <h1 class="text-5xl lg:text-7xl font-bold tracking-tight text-gray-900 mb-8 leading-tight">
+                        Supercharge Your <br>
+                        <span class="text-gradient">Instagram Growth</span>
+                    </h1>
+                    <p class="text-xl text-gray-500 mb-10 leading-relaxed">
+                        Automate DMs, comments, and engagement securely. Turn followers into customers while you sleep.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="openLoginModal()" class="px-8 py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-gray-800 transition shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3">
+                            Start Free Trial <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-2xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-play-circle text-purple-600"></i> Watch Demo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Footer (Simplified) -->
+        <footer class="bg-white border-t border-gray-100 py-12 mt-20">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <p class="text-gray-500">© 2024 InstaBot AI. Secure & Verified.</p>
+                <button onclick="showAdminLogin()" class="mt-4 text-xs text-gray-300 hover:text-gray-500 transition">Admin Access</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ============================== -->
+    <!-- USER DASHBOARD -->
+    <!-- ============================== -->
+    <div id="userDashboard" class="hidden min-h-screen flex bg-[#f8fafc]">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition duration-300 ease-in-out">
+            <div class="flex items-center gap-3 h-20 px-6 border-b border-gray-100">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm">
+                    <i class="fab fa-instagram"></i>
+                </div>
+                <span class="font-bold text-xl text-gray-800">InstaBot</span>
+            </div>
+
+            <div class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
+                <a href="#" data-section="dashboard" class="nav-link active flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition">
+                    <i class="fas fa-home w-5"></i> <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="#" onclick="showAdminSection('users')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-700">
-                    <i class="fas fa-users w-5"></i><span>Users</span>
+                <a href="#" data-section="automation" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition">
+                    <i class="fas fa-robot w-5"></i> <span class="font-medium">Automation</span>
                 </a>
-                <a href="#" onclick="showAdminSection('plans')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-700">
-                    <i class="fas fa-tags w-5"></i><span>Plans & Pricing</span>
+                <a href="#" data-section="billing" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition">
+                    <i class="fas fa-credit-card w-5"></i> <span class="font-medium">Billing & Plans</span>
                 </a>
-                <a href="#" onclick="showAdminSection('payments')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-700">
-                    <i class="fas fa-credit-card w-5"></i><span>Payments</span>
+                <a href="#" data-section="settings" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition">
+                    <i class="fas fa-cog w-5"></i> <span class="font-medium">Settings</span>
                 </a>
-                <a href="#" onclick="showAdminSection('accounts')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-700">
-                    <i class="fab fa-instagram w-5"></i><span>IG Accounts</span>
+
+                <!-- Admin Link (Hidden by default) -->
+                <a href="#" id="adminNavLink" onclick="showAdminPanel()" class="hidden mt-8 flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-purple-500/20">
+                    <i class="fas fa-shield-alt w-5"></i> <span class="font-medium">Admin Panel</span>
                 </a>
-                <a href="#" onclick="showAdminSection('settings')" class="admin-nav flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-700">
-                    <i class="fas fa-cog w-5"></i><span>Settings</span>
-                </a>
-            </nav>
-            
-            <div class="absolute bottom-6 left-6 right-6">
-                <button onclick="showLandingPage()" class="w-full py-3 bg-purple-600 rounded-xl font-medium hover:bg-purple-700 transition mb-2">
-                    <i class="fas fa-home mr-2"></i> Back to Site
-                </button>
-                <button onclick="adminLogout()" class="w-full py-3 bg-red-600 rounded-xl font-medium hover:bg-red-700 transition">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                </button>
             </div>
         </aside>
-        
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 hidden lg:hidden"></div>
+
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto bg-gray-900 p-8">
-            
-            <!-- Overview Section -->
-            <section id="overviewSection">
-                <h1 class="text-3xl font-bold mb-8">Dashboard Overview</h1>
-                
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total Users</p>
-                                <h3 id="adminTotalUsers2" class="text-3xl font-bold">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-users text-purple-500 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Active Subscriptions</p>
-                                <h3 id="adminActiveSubscriptions" class="text-3xl font-bold">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-check-circle text-green-500 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total Revenue</p>
-                                <h3 id="adminTotalRevenue" class="text-3xl font-bold">₹0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-yellow-600/20 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-rupee-sign text-yellow-500 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total DMs Sent</p>
-                                <h3 id="adminTotalDmsSent" class="text-3xl font-bold">0</h3>
-                            </div>
-                            <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-paper-plane text-blue-500 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
+        <main class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+            <!-- Topbar -->
+            <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20 px-6 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-purple-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h2 id="pageTitle" class="text-xl font-bold text-gray-800">Dashboard</h2>
                 </div>
-                
-                <!-- Charts -->
-                <div class="grid lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold mb-4">User Growth</h3>
-                        <canvas id="userGrowthChart" height="250"></canvas>
-                    </div>
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold mb-4">Revenue</h3>
-                        <canvas id="revenueChart" height="250"></canvas>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Users Section -->
-            <section id="usersSection" class="hidden">
-                <div class="flex items-center justify-between mb-8">
-                    <h1 class="text-3xl font-bold">User Management</h1>
-                    <div class="flex gap-4">
-                        <input type="text" id="userSearch" placeholder="Search users..." class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white" oninput="searchUsersAdmin()">
-                        <button onclick="exportUsers()" class="px-4 py-2 bg-green-600 rounded-xl hover:bg-green-700 transition">
-                            <i class="fas fa-download mr-2"></i> Export
+
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <button onclick="toggleUserDropdown()" class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-xl transition">
+                            <div class="text-right hidden sm:block">
+                                <p id="userName" class="text-sm font-semibold text-gray-800">User</p>
+                                <p id="currentPlan" class="text-xs text-purple-600 font-medium">Free Plan</p>
+                            </div>
+                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
                         </button>
+                        
+                        <!-- Dropdown -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-fade-in-down">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p id="dropdownEmail" class="text-sm font-medium text-gray-900 truncate">user@email.com</p>
+                                <p id="dropdownRole" class="text-xs text-gray-500 mt-0.5">Free Member</p>
+                            </div>
+                            <a href="#" onclick="showSection('settings'); closeDropdown()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">
+                                <i class="fas fa-user-cog mr-2"></i> Account Settings
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </header>
+
+            <div class="p-4 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
                 
-                <div class="bg-gray-800 rounded-2xl overflow-hidden">
-                    <table class="w-full">
-                        <thead class="bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">User</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Email</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Plan</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">DMs Used</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Status</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Joined</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminUsersTable2" class="divide-y divide-gray-700">
-                            <!-- Users loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <!-- Plans & Pricing Section -->
-            <section id="plansSection" class="hidden">
-                <h1 class="text-3xl font-bold mb-8">Plans & Pricing Management</h1>
-                
-                <div class="grid lg:grid-cols-3 gap-6">
-                    <!-- Starter Plan -->
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold">Starter Plan</h3>
-                            <span class="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm">Active</span>
+                <!-- DASHBOARD SECTION -->
+                <section id="dashboardSection" class="space-y-6">
+                    <!-- Usage Card -->
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-purple-100 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Plan Usage</h3>
+                        <div class="mb-2 flex justify-between items-end">
+                            <span class="text-3xl font-bold text-gray-900"><span id="dmsUsed">0</span><span class="text-gray-400 text-lg"> / <span id="dmsLimit">100</span></span></span>
+                            <span class="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">DMs Sent</span>
                         </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Monthly Price (₹)</label>
-                                <input type="number" id="starterMonthly" value="499" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Yearly Price (₹)</label>
-                                <input type="number" id="starterYearly" value="4790" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">DM Limit (per month)</label>
-                                <input type="number" id="starterDmLimit" value="500" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Account Limit</label>
-                                <input type="number" id="starterAccountLimit" value="1" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
+                        <div class="w-full bg-gray-100 rounded-full h-3">
+                            <div id="usageBar" class="bg-gradient-to-r from-purple-600 to-pink-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
                     
-                    <!-- Pro Plan -->
-                    <div class="bg-gray-800 rounded-2xl p-6 border-2 border-purple-600">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold">Pro Plan</h3>
-                            <span class="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-sm">Popular</span>
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card rounded-2xl p-6 flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Total DMs Sent</p>
+                                <h4 id="totalDms" class="text-2xl font-bold text-gray-900 mt-1">0</h4>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                <i class="fas fa-paper-plane text-xl"></i>
+                            </div>
                         </div>
+                        <div class="glass-card rounded-2xl p-6 flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Success Rate</p>
+                                <h4 class="text-2xl font-bold text-gray-900 mt-1">100%</h4>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- BILLING SECTION -->
+                <section id="billingSection" class="hidden space-y-8">
+                    <div class="text-center max-w-2xl mx-auto mb-10">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Upgrade your Plan</h2>
+                        <p class="text-gray-500">Choose the perfect plan for your Instagram growth.</p>
                         
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Monthly Price (₹)</label>
-                                <input type="number" id="proMonthly" value="999" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Yearly Price (₹)</label>
-                                <input type="number" id="proYearly" value="9590" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">DM Limit (per month)</label>
-                                <input type="number" id="proDmLimit" value="2000" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Account Limit</label>
-                                <input type="number" id="proAccountLimit" value="3" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
+                        <!-- Toggle -->
+                        <div class="mt-6 flex items-center justify-center gap-4">
+                            <span class="text-sm font-medium text-gray-600">Monthly</span>
+                            <button onclick="switchBillingType(billingType === 'monthly' ? 'yearly' : 'monthly')" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 bg-purple-600">
+                                <span class="sr-only">Use setting</span>
+                                <span id="billingToggle" class="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                            </button>
+                            <span class="text-sm font-medium text-gray-900">Yearly <span class="text-xs text-green-500 font-bold ml-1">(Save 20%)</span></span>
                         </div>
                     </div>
-                    
-                    <!-- Enterprise Plan -->
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold">Enterprise Plan</h3>
-                            <span class="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-sm">Premium</span>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Starter -->
+                        <div class="glass-card rounded-3xl p-8 hover:border-purple-200 transition relative">
+                            <h3 class="text-xl font-bold text-gray-900">Starter</h3>
+                            <div class="mt-4 flex items-baseline">
+                                <span class="text-4xl font-bold text-gray-900">₹</span>
+                                <span class="text-4xl font-bold text-gray-900 plan-price" data-monthly="499" data-yearly="4790">499</span>
+                                <span class="ml-1 text-gray-500 plan-period">/month</span>
+                            </div>
+                            <ul class="mt-6 space-y-4">
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> 500 DMs/month</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> 1 Account</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> Basic Support</li>
+                            </ul>
+                            <button onclick="selectUpgradePlan('starter')" class="mt-8 w-full py-3 bg-purple-50 text-purple-700 rounded-xl font-bold hover:bg-purple-100 transition">Choose Starter</button>
                         </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Monthly Price (₹)</label>
-                                <input type="number" id="enterpriseMonthly" value="2499" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
+
+                        <!-- Pro -->
+                        <div class="glass-card rounded-3xl p-8 border-2 border-purple-600 relative shadow-2xl shadow-purple-500/10">
+                            <div class="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-2xl">POPULAR</div>
+                            <h3 class="text-xl font-bold text-gray-900">Pro</h3>
+                            <div class="mt-4 flex items-baseline">
+                                <span class="text-4xl font-bold text-gray-900">₹</span>
+                                <span class="text-4xl font-bold text-gray-900 plan-price" data-monthly="999" data-yearly="9590">999</span>
+                                <span class="ml-1 text-gray-500 plan-period">/month</span>
                             </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Yearly Price (₹)</label>
-                                <input type="number" id="enterpriseYearly" value="23990" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">DM Limit (per month)</label>
-                                <input type="number" id="enterpriseDmLimit" value="999999" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                                <p class="text-xs text-gray-500 mt-1">999999 = Unlimited</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Account Limit</label>
-                                <input type="number" id="enterpriseAccountLimit" value="10" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
+                            <ul class="mt-6 space-y-4">
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> 2000 DMs/month</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> 3 Accounts</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> Priority Support</li>
+                            </ul>
+                            <button onclick="selectUpgradePlan('pro')" class="mt-8 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition">Upgrade to Pro</button>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="mt-8 flex gap-4">
-                    <button onclick="savePlanPrices()" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-bold hover:shadow-lg transition">
-                        <i class="fas fa-save mr-2"></i> Save All Changes
-                    </button>
-                    <button onclick="resetPlanPrices()" class="px-8 py-4 bg-gray-700 rounded-xl font-bold hover:bg-gray-600 transition">
-                        <i class="fas fa-undo mr-2"></i> Reset to Default
-                    </button>
-                </div>
-            </section>
-            
-            <!-- Payments Section -->
-            <section id="paymentsSection" class="hidden">
-                <div class="flex items-center justify-between mb-8">
-                    <h1 class="text-3xl font-bold">Payment History</h1>
-                    <div class="flex gap-4">
-                        <select id="paymentFilter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white" onchange="filterPayments()">
-                            <option value="all">All Payments</option>
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
-                            <option value="failed">Failed</option>
-                        </select>
-                        <button onclick="exportPayments()" class="px-4 py-2 bg-green-600 rounded-xl hover:bg-green-700 transition">
-                            <i class="fas fa-download mr-2"></i> Export
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-800 rounded-2xl overflow-hidden">
-                    <table class="w-full">
-                        <thead class="bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Payment ID</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">User</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Plan</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Amount</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Method</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Status</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Date</th>
-                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsTableBody" class="divide-y divide-gray-700">
-                            <!-- Payments loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <!-- Settings Section -->
-            <section id="settingsSection" class="hidden">
-                <h1 class="text-3xl font-bold mb-8">Admin Settings</h1>
-                
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <!-- General Settings -->
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <h3 class="text-xl font-bold mb-6">General Settings</h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Site Name</label>
-                                <input type="text" id="siteName" value="InstaBot AI" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
+
+                        <!-- Enterprise -->
+                        <div class="glass-card rounded-3xl p-8 hover:border-purple-200 transition relative">
+                            <h3 class="text-xl font-bold text-gray-900">Enterprise</h3>
+                            <div class="mt-4 flex items-baseline">
+                                <span class="text-4xl font-bold text-gray-900">₹</span>
+                                <span class="text-4xl font-bold text-gray-900 plan-price" data-monthly="2499" data-yearly="23990">2499</span>
+                                <span class="ml-1 text-gray-500 plan-period">/month</span>
                             </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Support Email</label>
-                                <input type="email" id="supportEmail" value="support@instabot.ai" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white">
-                            </div>
+                            <ul class="mt-6 space-y-4">
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> Unlimited DMs</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> 10 Accounts</li>
+                                <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-3"></i> Dedicated Manager</li>
+                            </ul>
+                            <button onclick="selectUpgradePlan('enterprise')" class="mt-8 w-full py-3 bg-purple-50 text-purple-700 rounded-xl font-bold hover:bg-purple-100 transition">Contact Sales</button>
                         </div>
                     </div>
-                    
-                    <!-- Admin Credentials -->
-                    <div class="bg-gray-800 rounded-2xl p-6">
-                        <h3 class="text-xl font-bold mb-6">Admin Credentials</h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Admin Emails (comma separated)</label>
-                                <textarea id="adminEmails" rows="2" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white" placeholder="sahanapraveen2006@gmail.com, admin2@example.com">sahanapraveen2006@gmail.com</textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-8">
-                    <button onclick="saveAdminSettings()" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-bold hover:shadow-lg transition">
-                        <i class="fas fa-save mr-2"></i> Save Settings
-                    </button>
-                </div>
-            </section>
+                </section>
+
+                <!-- OTHER SECTIONS (Placeholders) -->
+                <section id="automationSection" class="hidden text-center py-20 text-gray-500">
+                    <i class="fas fa-robot text-4xl mb-4 text-purple-200"></i>
+                    <p>Automation settings loading...</p>
+                </section>
+                <section id="settingsSection" class="hidden text-center py-20 text-gray-500">
+                    <i class="fas fa-cog text-4xl mb-4 text-purple-200"></i>
+                    <p>Settings panel loading...</p>
+                </section>
+
+            </div>
         </main>
     </div>
-</div>
 
-<!-- ============================== -->
-<!-- MODALS -->
-<!-- ============================== -->
-
-<!-- Login Modal -->
-<div id="loginModal" class="modal">
-    <div class="glass-card rounded-3xl p-8 max-w-md w-full mx-4 relative">
-        <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
-        
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i class="fab fa-instagram text-white text-3xl"></i>
+    <!-- ============================== -->
+    <!-- ADMIN PANEL -->
+    <!-- ============================== -->
+    <div id="adminPanel" class="hidden min-h-screen bg-gray-900 text-white flex">
+        <aside class="w-64 bg-gray-800 p-6 flex flex-col">
+            <div class="flex items-center gap-3 mb-10">
+                <i class="fas fa-shield-alt text-red-500 text-2xl"></i>
+                <h2 class="text-xl font-bold">Admin</h2>
             </div>
-            <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
-            <p class="text-gray-500">Login to your account</p>
+            <nav class="flex-1 space-y-2">
+                <button onclick="loadAdminData()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-700 text-white">
+                    <i class="fas fa-chart-pie"></i> Overview
+                </button>
+            </nav>
+            <button onclick="showLandingPage()" class="mt-auto w-full py-3 bg-red-600 rounded-xl font-bold hover:bg-red-700 transition">Logout</button>
+        </aside>
+        <main class="flex-1 p-8 overflow-y-auto">
+            <h1 class="text-3xl font-bold mb-8">Dashboard Overview</h1>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 p-6 rounded-2xl">
+                    <p class="text-gray-400">Total Users</p>
+                    <h3 id="adminTotalUsers2" class="text-3xl font-bold mt-2">0</h3>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-2xl">
+                    <p class="text-gray-400">Revenue</p>
+                    <h3 id="adminTotalRevenue" class="text-3xl font-bold mt-2 text-green-400">₹0</h3>
+                </div>
+            </div>
+            <!-- Tables would go here -->
+            <p class="text-gray-500 text-center mt-20">Select an option from the sidebar</p>
+        </main>
+    </div>
+
+    <!-- ============================== -->
+    <!-- MODALS -->
+    <!-- ============================== -->
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="glass-card bg-white rounded-3xl p-8 max-w-md w-full mx-4 relative shadow-2xl">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-purple-600 text-2xl">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                <p class="text-gray-500">Access your automation dashboard</p>
+            </div>
+            
+            <div id="loginForm" class="space-y-4">
+                <input type="email" id="loginEmail" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition" placeholder="Email address">
+                <input type="password" id="loginPassword" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition" placeholder="Password">
+                <button onclick="loginWithEmail()" class="w-full py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition shadow-lg">Login</button>
+                <div class="text-center mt-4">
+                    <span class="text-gray-500">No account? </span>
+                    <button onclick="document.getElementById('loginForm').classList.add('hidden'); document.getElementById('signupForm').classList.remove('hidden');" class="text-purple-600 font-bold hover:underline">Sign Up</button>
+                </div>
+            </div>
+
+            <div id="signupForm" class="space-y-4 hidden">
+                <input type="text" id="signupName" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition" placeholder="Full Name">
+                <input type="email" id="signupEmail" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition" placeholder="Email address">
+                <input type="password" id="signupPassword" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition" placeholder="Create Password">
+                <button onclick="signupWithEmail()" class="w-full py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition shadow-lg">Create Account</button>
+                <div class="text-center mt-4">
+                    <button onclick="document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.remove('hidden');" class="text-gray-500 hover:text-gray-800">Back to Login</button>
+                </div>
+            </div>
         </div>
-        
-        <div id="loginForm">
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal">
+        <div class="glass-card bg-white rounded-3xl p-8 max-w-md w-full mx-4 relative border-l-4 border-red-500">
+            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400"><i class="fas fa-times"></i></button>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Admin Access</h2>
             <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="loginEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="your@email.com">
+                <input type="email" id="adminEmail" class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200" placeholder="Admin Email" value="sahanapraveen2006@gmail.com">
+                <input type="password" id="adminPassword" class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200" placeholder="Admin Password" value="rudra3745">
+                <button onclick="adminLogin()" class="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition">Enter Admin Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal (PHONEPE) -->
+    <div id="paymentModal" class="modal">
+        <div class="glass-card bg-white rounded-3xl p-8 max-w-md w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            
+            <div class="text-center mb-6">
+                <p class="text-gray-500 font-medium">You are upgrading to</p>
+                <h3 id="paymentPlanName" class="text-2xl font-bold text-purple-600 mt-1">Pro Plan</h3>
+                <div class="mt-2 flex items-center justify-center gap-1">
+                    <span class="text-2xl font-bold text-gray-900">₹</span>
+                    <span id="paymentAmount" class="text-4xl font-bold text-gray-900">999</span>
+                    <span id="paymentPeriod" class="text-gray-500">/month</span>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password" id="loginPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="••••••••">
+                <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold">
+                    <i class="fas fa-lock"></i> SSL Secured Payment
                 </div>
-                
-                <button onclick="loginWithEmail()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition">Login</button>
-                
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
-                    <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or continue with</span></div>
-                </div>
-                
-                <button onclick="loginWithGoogle()" class="w-full py-4 border border-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 hover:bg-gray-50 transition">
-                    <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Continue with Google
+            </div>
+            
+            <div class="space-y-4">
+                <!-- PhonePe Button -->
+                <button onclick="payWithPhonePe()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition transform flex items-center justify-center gap-3">
+                    <span class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fas fa-mobile-alt"></i></span>
+                    <span class="text-lg">Pay securely with PhonePe</span>
                 </button>
                 
-                <p class="text-center text-gray-500 mt-4">Don't have an account? <button onclick="showSignup()" class="text-purple-600 font-medium">Sign up</button></p>
-            </div>
-        </div>
-        
-        <div id="signupForm" class="hidden">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                    <input type="text" id="signupName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="John Doe">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="signupEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="your@email.com">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password" id="signupPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="••••••••">
-                </div>
-                
-                <button onclick="signupWithEmail()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition">Create Account</button>
-                
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
-                    <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or continue with</span></div>
-                </div>
-                
-                <button onclick="loginWithGoogle()" class="w-full py-4 border border-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 hover:bg-gray-50 transition">
-                    <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Continue with Google
+                <!-- Manual UPI Toggle -->
+                <button onclick="document.getElementById('upiSection').classList.toggle('hidden')" class="w-full py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-qrcode"></i> Pay via UPI QR
                 </button>
                 
-                <p class="text-center text-gray-500 mt-4">Already have an account? <button onclick="showLogin()" class="text-purple-600 font-medium">Login</button></p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Admin Login Modal -->
-<div id="adminLoginModal" class="modal">
-    <div class="glass-card rounded-3xl p-8 max-w-md w-full mx-4 relative">
-        <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
-        
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-shield-alt text-white text-3xl"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-900">Admin Access</h2>
-            <p class="text-gray-500">Enter admin credentials</p>
-        </div>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
-                <input type="email" id="adminEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-600" placeholder="admin@email.com" value="sahanapraveen2006@gmail.com">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Admin Password</label>
-                <input type="password" id="adminPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-600" placeholder="••••••••" value="rudra3745">
-            </div>
-            
-            <button onclick="adminLogin()" class="w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-bold hover:shadow-lg transition">
-                <i class="fas fa-lock mr-2"></i> Access Admin Panel
-            </button>
-            
-            <div class="p-4 bg-yellow-50 rounded-xl mt-4">
-                <p class="text-yellow-800 text-sm"><i class="fas fa-info-circle mr-2"></i>Default admin: sahanapraveen2006@gmail.com / rudra3745</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Connect Instagram Modal -->
-<div id="connectModal" class="modal">
-    <div class="glass-card rounded-3xl p-6 lg:p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-800">Connect Instagram</h3>
-            <button onclick="closeConnectModal()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Instagram Username</label>
-                <input type="text" id="igUsername" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600" placeholder="@yourusername">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Instagram Password</label>
-                <div class="relative">
-                    <input type="password" id="igPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600 pr-12" placeholder="••••••••">
-                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        <i id="passwordToggleIcon" class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                <p class="text-yellow-800 text-sm"><i class="fas fa-shield-alt mr-2"></i>Your credentials are encrypted and secure. We use bank-level encryption.</p>
-            </div>
-            
-            <button onclick="connectInstagramAccount()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition">
-                <i class="fab fa-instagram mr-2"></i> Connect Account
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Payment Modal -->
-<div id="paymentModal" class="modal">
-    <div class="glass-card rounded-3xl p-6 lg:p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-800">Complete Payment</h3>
-            <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        
-        <div class="text-center mb-6">
-            <p class="text-gray-500">You're upgrading to</p>
-            <p id="paymentPlanName" class="text-2xl font-bold text-purple-600">Pro Plan</p>
-            <p class="text-3xl font-bold text-gray-800 mt-2">₹<span id="paymentAmount">999</span></p>
-            <p id="paymentPeriod" class="text-sm text-gray-500">per month</p>
-        </div>
-        
-        <div class="space-y-4">
-            <button onclick="payWithRazorpay()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                <img src="https://razorpay.com/favicon.png" class="w-5 h-5" alt="Razorpay"> Pay with Razorpay
-            </button>
-            
-            <button onclick="showUPISection()" class="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
-                <i class="fas fa-mobile-alt"></i> Pay with UPI
-            </button>
-            
-            <div id="upiSection" class="hidden">
-                <div class="p-4 bg-gray-50 rounded-xl text-center border">
-                    <p class="text-sm text-gray-600 mb-2">Scan QR or pay to UPI ID:</p>
-                    <p id="displayUpiId" class="font-mono font-bold text-lg text-gray-800">yourstore@upi</p>
-                    <img id="upiQR" src="" class="mx-auto mt-4 rounded-lg" alt="UPI QR Code">
-                    <div class="mt-4 space-y-3">
-                        <input type="text" id="upiTxnId" placeholder="Enter Transaction ID / UTR Number" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-600">
-                        <button onclick="verifyUPI()" class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
-                            <i class="fas fa-check-circle mr-2"></i> Verify Payment
+                <!-- Manual UPI Section -->
+                <div id="upiSection" class="hidden animate-fade-in pt-4 border-t border-gray-100">
+                    <div class="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                        <p class="text-sm text-gray-600 mb-2 font-medium">Scan & Pay</p>
+                        <p id="displayUpiId" class="font-mono font-bold text-lg text-gray-800 bg-white px-2 py-1 rounded inline-block mb-3 select-all">yourstore@upi</p>
+                        <!-- QR Code Placeholder -->
+                        <div class="w-48 h-48 bg-white mx-auto rounded-lg flex items-center justify-center shadow-sm mb-4 border">
+                            <i class="fas fa-qrcode text-4xl text-gray-300"></i>
+                        </div>
+                        <input type="text" id="upiTxnId" placeholder="Enter Transaction ID (UTR)" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600 text-sm bg-white mb-3">
+                        <button onclick="verifyUPI()" class="w-full py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition">
+                            Verify Payment
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Loading Modal -->
-<div id="loadingModal" class="modal">
-    <div class="text-center">
-        <div class="loader mx-auto mb-4"></div>
-        <p class="text-white text-lg font-medium" id="loadingText">Please wait...</p>
+    <!-- Loading Overlay -->
+    <div id="loadingModal" class="modal">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center">
+            <div class="loader mb-4"></div>
+            <p id="loadingText" class="text-gray-700 font-medium">Please wait...</p>
+        </div>
     </div>
-</div>
 
-<!-- Toast -->
-<div id="toast" class="toast hide fixed bottom-4 right-4 z-50">
-    <div class="bg-gray-900 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 max-w-sm">
-        <i id="toastIcon" class="fas fa-check-circle text-green-500 text-xl"></i>
-        <span id="toastMessage" class="flex-1">Success!</span>
-        <button onclick="hideToast()" class="text-gray-400 hover:text-white">
-            <i class="fas fa-times"></i>
-        </button>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 toast hide">
+        <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+        <span id="toastMessage" class="font-medium">Notification</span>
     </div>
-</div>
 
-<!-- Razorpay Script -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script>
-    // ══════════════════════════════════════════════════════════════════
-    // 🔧 CONFIGURATION
-    // ══════════════════════════════════════════════════════════════════
-    const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
-    
-    // 💰 RAZORPAY - Add your Razorpay Key here
-    const RAZORPAY_KEY = 'rzp_test_XXXXXXXXXX'; // <- REPLACE WITH YOUR KEY
-    
-    // 💰 UPI - Add your UPI ID here
-    const UPI_ID = 'yourstore@upi'; // <- REPLACE WITH YOUR UPI ID
-    
-    // 👤 ADMIN CREDENTIALS
-    const ADMIN_EMAIL = 'sahanapraveen2006@gmail.com';
-    const ADMIN_PASSWORD = 'rudra3745';
-    const ADMIN_EMAILS = ['sahanapraveen2006@gmail.com'];
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // ══════════════════════════════════════════════════════════════════
-    // GLOBAL VARIABLES
-    // ══════════════════════════════════════════════════════════════════
-    let currentUser = null;
-    let userProfile = null;
-    let isAdmin = false;
-    let selectedPlan = null;
-    let billingType = 'monthly';
-    let keywords = [];
-    let currentUserPage = 1;
-    const usersPerPage = 10;
-    let allUsers = [];
-    let allPayments = [];
-    
-    // ══════════════════════════════════════════════════════════════════
-    // INITIALIZATION
-    // ══════════════════════════════════════════════════════════════════
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Check if user is already logged in
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            await handleUserLogin(user);
-        }
+    <!-- ============================== -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ============================== -->
+    <script>
+        // ══════════════════════════════════════════════════════════════════
+        // 🔧 CONFIGURATION & API
+        // ══════════════════════════════════════════════════════════════════
+        const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
         
-        // Setup event listeners
-        setupEventListeners();
-    });
-    
-    function setupEventListeners() {
-        // Navigation links for user dashboard
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = link.dataset.section;
-                if (section) {
-                    showSection(section);
-                    closeSidebar();
+        // VERCEL BACKEND URL
+        const API_BASE_URL = 'https://instabotme.vercel.app/api'; 
+        
+        // MANUAL UPI (Fallback)
+        const UPI_ID = 'yourstore@upi';
+        
+        // ADMIN CREDENTIALS
+        const ADMIN_EMAIL = 'sahanapraveen2006@gmail.com';
+        const ADMIN_PASSWORD = 'rudra3745';
+        
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Global State
+        let currentUser = null;
+        let userProfile = null;
+        let selectedPlan = null;
+        let billingType = 'monthly';
+
+        // ══════════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ══════════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Setup Tab Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection(link.dataset.section);
+                    // Mobile sidebar close logic could go here
+                });
+            });
+
+            // Check Auth Session
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await handleUserLogin(session.user);
+            } else {
+                showLandingPage();
+            }
+
+            // Init Toggle for Billing
+            const toggleBtn = document.getElementById('billingToggle');
+            if(toggleBtn) {
+               // Initial visual state handled in HTML/CSS classes
+            }
+        });
+
+        // ══════════════════════════════════════════════════════════════════
+        // UI NAVIGATION FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        function showLandingPage() {
+            document.getElementById('landingPage').classList.remove('hidden');
+            document.getElementById('userDashboard').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+        }
+
+        function showUserDashboard() {
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('userDashboard').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            showSection('dashboard');
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('main section').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(sectionId + 'Section');
+            if (target) target.classList.remove('hidden');
+
+            // Update Sidebar Active State
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if(link.dataset.section === sectionId) {
+                    link.classList.add('bg-purple-50', 'text-purple-600');
+                    link.classList.remove('text-gray-600');
+                } else {
+                    link.classList.remove('bg-purple-50', 'text-purple-600');
+                    link.classList.add('text-gray-600');
                 }
             });
-        });
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // PAGE NAVIGATION
-    // ══════════════════════════════════════════════════════════════════
-    function showLandingPage() {
-        document.getElementById('landingPage').classList.remove('hidden');
-        document.getElementById('userDashboard').classList.add('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
-    }
-    
-    function showUserDashboard() {
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('userDashboard').classList.remove('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
-    }
-    
-    function showAdminPanel() {
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('userDashboard').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // USER AUTHENTICATION
-    // ══════════════════════════════════════════════════════════════════
-    async function handleUserLogin(user) {
-        currentUser = user;
-        isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-        
-        if (isAdmin) {
-            document.getElementById('adminNavLink').classList.remove('hidden');
+
+            // Update Title
+            const titles = {
+                dashboard: 'Dashboard',
+                automation: 'Automation Tools',
+                billing: 'Plans & Billing',
+                settings: 'Account Settings'
+            };
+            document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
         }
-        
-        await loadUserProfile();
-        showUserDashboard();
-        initCharts();
-    }
-    
-    async function loadUserProfile() {
-        try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
-            
-            if (data) {
-                userProfile = data;
-                updateUI();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if(sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
             } else {
-                // Create profile if doesn't exist
-                const newProfile = {
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    full_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-                    plan: 'free',
-                    dms_used: 0,
-                    dms_limit: 100,
-                    is_admin: isAdmin,
-                    created_at: new Date().toISOString()
-                };
-                
-                await supabase.from('profiles').insert(newProfile);
-                userProfile = newProfile;
-                updateUI();
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
-        } catch (error) {
-            console.error('Profile load error:', error);
         }
-    }
-    
-    function updateUI() {
-        if (!userProfile) return;
-        
-        const name = userProfile.full_name || userProfile.email?.split('@')[0] || 'User';
-        
-        // Update user info
-        document.getElementById('userName').textContent = name;
-        document.getElementById('settingsName').value = userProfile.full_name || '';
-        document.getElementById('settingsEmail').value = userProfile.email || '';
-        document.getElementById('dropdownEmail').textContent = userProfile.email || '';
-        
-        // Update avatar
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7c3aed&color=fff`;
-        document.getElementById('userAvatar').src = avatarUrl;
-        document.getElementById('settingsAvatar').src = avatarUrl;
-        
-        // Plan names and limits
-        const planNames = { free: 'Free Plan', starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
-        const planLimits = { free: 100, starter: 500, pro: 2000, enterprise: 999999 };
-        const planLabel = planNames[userProfile.plan] || 'Free Plan';
-        
-        // Update plan displays
-        document.getElementById('currentPlan').textContent = planLabel;
-        document.getElementById('billingPlanName').textContent = planLabel;
-        document.getElementById('dropdownRole').textContent = planLabel;
-        document.getElementById('dmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('dmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
-        
-        // Update billing section
-        document.getElementById('billingDmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('billingDmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
-        
-        // Usage bar
-        const limit = planLimits[userProfile.plan] || 100;
-        const usagePercent = userProfile.plan === 'enterprise' ? 0 : ((userProfile.dms_used || 0) / limit) * 100;
-        document.getElementById('usageBar').style.width = `${Math.min(usagePercent, 100)}%`;
-        
-        // Update stats
-        document.getElementById('totalDms').textContent = userProfile.dms_used || 0;
-        document.getElementById('allTimeDms').textContent = userProfile.dms_used || 0;
-        
-        // Load automation settings if exists
-        if (userProfile.automation_settings) {
-            const settings = userProfile.automation_settings;
-            document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
-            document.getElementById('autoReplyMessage').value = settings.autoReplyMessage || '';
-            document.getElementById('dmDelay').value = settings.dmDelay || 30;
-            document.getElementById('dailyLimit').value = settings.dailyLimit || 50;
-            document.getElementById('autoDmToggle').checked = settings.autoDmEnabled || false;
-            document.getElementById('autoDmStatus').textContent = settings.autoDmEnabled ? 'ON' : 'OFF';
-            document.getElementById('reelCommentToggle').checked = settings.reelCommentEnabled || false;
-            document.getElementById('reelCommentStatus').textContent = settings.reelCommentEnabled ? 'ON' : 'OFF';
-            document.getElementById('reelCommentReply').value = settings.reelCommentReply || '';
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
         }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // LOGIN/SIGNUP FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function openLoginModal() { 
-        document.getElementById('loginModal').classList.add('active'); 
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeLoginModal() { 
-        document.getElementById('loginModal').classList.remove('active'); 
-        document.body.style.overflow = '';
-    }
-    
-    function showSignup() { 
-        document.getElementById('loginForm').classList.add('hidden'); 
-        document.getElementById('signupForm').classList.remove('hidden'); 
-    }
-    
-    function showLogin() { 
-        document.getElementById('signupForm').classList.add('hidden'); 
-        document.getElementById('loginForm').classList.remove('hidden'); 
-    }
-    
-    function showAdminLogin() {
-        document.getElementById('adminLoginModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeAdminLoginModal() {
-        document.getElementById('adminLoginModal').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    async function loginWithEmail() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        
-        if (!email || !password) { 
-            showToast('Please fill all fields', 'error'); 
-            return; 
+
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
         }
-        
-        showLoading('Logging in...');
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+
+        function toggleUserDropdown() {
+            document.getElementById('userDropdown').classList.toggle('hidden');
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // AUTHENTICATION LOGIC
+        // ══════════════════════════════════════════════════════════════════
+        async function handleUserLogin(user) {
+            currentUser = user;
+            // Check for profile
+            try {
+                let { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                
+                if (!profile) {
+                    // Create default profile
+                    const newProfile = {
+                        id: user.id,
+                        email: user.email,
+                        full_name: user.user_metadata?.full_name || 'User',
+                        plan: 'free',
+                        dms_limit: 100,
+                        dms_used: 0
+                    };
+                    await supabase.from('profiles').insert(newProfile);
+                    profile = newProfile;
+                }
+                userProfile = profile;
+                updateDashboardUI();
+                showUserDashboard();
+            } catch (error) {
+                console.error('Login error', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        async function loginWithEmail() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            showLoading('Logging in...');
             
-            await handleUserLogin(data.user);
-            closeLoginModal();
-            showToast('Login successful!');
-        } catch (error) {
-            showToast(error.message, 'error');
-        } finally {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             hideLoading();
+            
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                closeLoginModal();
+                handleUserLogin(data.user);
+            }
         }
-    }
-    
-    async function signupWithEmail() {
-        const name = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        
-        if (!name || !email || !password) { 
-            showToast('Please fill all fields', 'error'); 
-            return; 
-        }
-        
-        showLoading('Creating account...');
-        try {
+
+        async function signupWithEmail() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const name = document.getElementById('signupName').value;
+            showLoading('Creating account...');
+
             const { data, error } = await supabase.auth.signUp({
-                email, password,
+                email,
+                password,
                 options: { data: { full_name: name } }
             });
-            if (error) throw error;
             
-            // Create profile
-            await supabase.from('profiles').insert({
-                id: data.user.id,
-                email, full_name: name,
-                plan: 'free', dms_limit: 100, dms_used: 0,
-                status: 'active', created_at: new Date().toISOString()
-            });
-            
-            showToast('Account created! Please check your email.');
-            setTimeout(() => showLogin(), 2000);
-        } catch (error) {
-            showToast(error.message, 'error');
-        } finally {
             hideLoading();
-        }
-    }
-    
-    async function loginWithGoogle() {
-        showLoading('Redirecting to Google...');
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
-            if (error) throw error;
-        } catch (error) {
-            showToast(error.message, 'error');
-            hideLoading();
-        }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // ADMIN FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    async function adminLogin() {
-        const email = document.getElementById('adminEmail').value;
-        const password = document.getElementById('adminPassword').value;
-        
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-            closeAdminLoginModal();
-            showAdminPanel();
-            loadAdminData();
-            showToast('Welcome, Admin!');
-            return;
-        }
-        
-        // Also check Supabase for admin users
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            
-            if (error) throw error;
-            
-            if (ADMIN_EMAILS.includes(email.toLowerCase())) {
-                closeAdminLoginModal();
-                showAdminPanel();
-                loadAdminData();
-                showToast('Welcome, Admin!');
+
+            if (error) {
+                showToast(error.message, 'error');
             } else {
-                showToast('Not an admin account', 'error');
+                showToast('Check your email for confirmation link!');
+                document.getElementById('signupForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
             }
-        } catch (error) {
-            showToast('Invalid credentials', 'error');
         }
-    }
-    
-    function adminLogout() {
-        showLandingPage();
-        showToast('Admin logged out');
-    }
-    
-    function showAdminSection(section) {
-        // Hide all sections
-        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.getElementById(`${section}Section`).classList.remove('hidden');
-        
-        // Update nav links
-        document.querySelectorAll('.admin-nav').forEach(nav => {
-            nav.classList.remove('bg-red-600');
-            nav.classList.add('hover:bg-gray-700');
-        });
-        event.target.closest('.admin-nav')?.classList.add('bg-red-600');
-        event.target.closest('.admin-nav')?.classList.remove('hover:bg-gray-700');
-    }
-    
-    async function loadAdminData() {
-        showLoading('Loading admin data...');
-        
-        try {
-            // Load users
-            const { data: users } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            allUsers = users || [];
-            
-            // Load payments
-            const { data: payments } = await supabase
-                .from('payments')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            allPayments = payments || [];
-            
-            // Update stats
-            document.getElementById('adminTotalUsers2').textContent = allUsers.length;
-            document.getElementById('adminActiveSubscriptions').textContent = allUsers.filter(u => u.plan !== 'free').length;
-            
-            const totalRevenue = allPayments
-                .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + (p.amount || 0), 0);
-            document.getElementById('adminTotalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
-            
-            const totalDms = allUsers.reduce((sum, u) => sum + (u.dms_used || 0), 0);
-            document.getElementById('adminTotalDmsSent').textContent = totalDms.toLocaleString();
-            
-            // Render tables
-            renderUsersTableAdmin();
-            renderPaymentsTableAdmin();
-            
-            // Load plan prices
-            await loadPlanPrices();
-            
-            // Initialize charts
-            initAdminCharts();
-            
-        } catch (error) {
-            console.error('Admin data error:', error);
-            showToast('Error loading admin data', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function renderUsersTableAdmin() {
-        const tbody = document.getElementById('adminUsersTable2');
-        
-        if (!allUsers || allUsers.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">No users found</td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tbody.innerHTML = allUsers.slice(0, 50).map(user => `
-            <tr class="hover:bg-gray-700/50">
-                <td class="px-6 py-4">
-                    <div class="flex items-center space-x-3">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'U')}&background=7c3aed&color=fff&size=32" class="w-8 h-8 rounded-full">
-                        <span class="font-medium">${escapeHtml(user.full_name || 'Unknown')}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-gray-300">${escapeHtml(user.email)}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                        user.plan === 'enterprise' ? 'bg-green-100 text-green-600' :
-                        user.plan === 'pro' ? 'bg-purple-100 text-purple-600' :
-                        user.plan === 'starter' ? 'bg-blue-100 text-blue-600' :
-                        'bg-gray-100 text-gray-600'
-                    }">${user.plan?.toUpperCase() || 'FREE'}</span>
-                </td>
-                <td class="px-6 py-4">${user.dms_used || 0}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 rounded-full text-xs font-medium ${user.status === 'blocked' ? 'bg-red-600/20 text-red-400' : 'bg-green-600/20 text-green-400'}">
-                        ${user.status === 'blocked' ? 'Blocked' : 'Active'}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-gray-300">${new Date(user.created_at).toLocaleDateString()}</td>
-                <td class="px-6 py-4">
-                    <button onclick="adminEditUser('${user.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="adminDeleteUser('${user.id}')" class="text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-    
-    async function loadPlanPrices() {
-        try {
-            const { data } = await supabase
-                .from('settings')
-                .select('*')
-                .eq('key', 'plan_prices')
-                .single();
-            
-            if (data?.value) {
-                const prices = data.value;
-                document.getElementById('starterMonthly').value = prices.starter?.monthly || 499;
-                document.getElementById('starterYearly').value = prices.starter?.yearly || 4790;
-                document.getElementById('starterDmLimit').value = prices.starter?.dmLimit || 500;
-                document.getElementById('starterAccountLimit').value = prices.starter?.accountLimit || 1;
-                
-                document.getElementById('proMonthly').value = prices.pro?.monthly || 999;
-                document.getElementById('proYearly').value = prices.pro?.yearly || 9590;
-                document.getElementById('proDmLimit').value = prices.pro?.dmLimit || 2000;
-                document.getElementById('proAccountLimit').value = prices.pro?.accountLimit || 3;
-                
-                document.getElementById('enterpriseMonthly').value = prices.enterprise?.monthly || 2499;
-                document.getElementById('enterpriseYearly').value = prices.enterprise?.yearly || 23990;
-                document.getElementById('enterpriseDmLimit').value = prices.enterprise?.dmLimit || 999999;
-                document.getElementById('enterpriseAccountLimit').value = prices.enterprise?.accountLimit || 10;
-            }
-        } catch (error) {
-            console.error('Load plan prices error:', error);
-        }
-    }
-    
-    async function savePlanPrices() {
-        showLoading('Saving plan prices...');
-        
-        const prices = {
-            starter: {
-                monthly: parseInt(document.getElementById('starterMonthly').value),
-                yearly: parseInt(document.getElementById('starterYearly').value),
-                dmLimit: parseInt(document.getElementById('starterDmLimit').value),
-                accountLimit: parseInt(document.getElementById('starterAccountLimit').value)
-            },
-            pro: {
-                monthly: parseInt(document.getElementById('proMonthly').value),
-                yearly: parseInt(document.getElementById('proYearly').value),
-                dmLimit: parseInt(document.getElementById('proDmLimit').value),
-                accountLimit: parseInt(document.getElementById('proAccountLimit').value)
-            },
-            enterprise: {
-                monthly: parseInt(document.getElementById('enterpriseMonthly').value),
-                yearly: parseInt(document.getElementById('enterpriseYearly').value),
-                dmLimit: parseInt(document.getElementById('enterpriseDmLimit').value),
-                accountLimit: parseInt(document.getElementById('enterpriseAccountLimit').value)
-            }
-        };
-        
-        try {
-            const { error } = await supabase
-                .from('settings')
-                .upsert({
-                    key: 'plan_prices',
-                    value: prices,
-                    updated_at: new Date().toISOString()
-                });
-            
-            if (error) throw error;
-            
-            showToast('Plan prices updated successfully!');
-        } catch (error) {
-            showToast('Error saving prices', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function resetPlanPrices() {
-        document.getElementById('starterMonthly').value = 499;
-        document.getElementById('starterYearly').value = 4790;
-        document.getElementById('starterDmLimit').value = 500;
-        document.getElementById('starterAccountLimit').value = 1;
-        
-        document.getElementById('proMonthly').value = 999;
-        document.getElementById('proYearly').value = 9590;
-        document.getElementById('proDmLimit').value = 2000;
-        document.getElementById('proAccountLimit').value = 3;
-        
-        document.getElementById('enterpriseMonthly').value = 2499;
-        document.getElementById('enterpriseYearly').value = 23990;
-        document.getElementById('enterpriseDmLimit').value = 999999;
-        document.getElementById('enterpriseAccountLimit').value = 10;
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // USER DASHBOARD FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('active');
-    }
-    
-    function closeSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-    }
-    
-    function toggleUserDropdown() {
-        document.getElementById('userDropdown').classList.toggle('hidden');
-    }
-    
-    function closeDropdown() {
-        document.getElementById('userDropdown').classList.add('hidden');
-    }
-    
-    function showSection(section) {
-        // Hide all sections
-        const sections = ['dashboard', 'automation', 'messages', 'analytics', 'accounts', 'billing', 'settings', 'admin'];
-        sections.forEach(s => {
-            const el = document.getElementById(`${s}Section`);
-            if (el) el.classList.add('hidden');
-        });
-        
-        // Show selected section
-        const targetSection = document.getElementById(`${section}Section`);
-        if (targetSection) {
-            targetSection.classList.remove('hidden');
-        }
-        
-        // Update nav links
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-            if (link.dataset.section !== 'admin') {
-                link.classList.add('text-gray-600');
-            }
-        });
-        
-        const activeLink = document.querySelector(`.nav-link[data-section="${section}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-            activeLink.classList.remove('text-gray-600');
-        }
-        
-        // Update page title
-        const titles = {
-            dashboard: 'Dashboard',
-            automation: 'Automation',
-            messages: 'Messages',
-            analytics: 'Analytics',
-            accounts: 'Instagram Accounts',
-            billing: 'Billing',
-            settings: 'Settings',
-            admin: 'Admin Panel'
-        };
-        document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
-    }
-    
-    function toggleAutoDm() {
-        const enabled = document.getElementById('autoDmToggle').checked;
-        document.getElementById('autoDmStatus').textContent = enabled ? 'ON' : 'OFF';
-    }
-    
-    function toggleReelComment() {
-        const enabled = document.getElementById('reelCommentToggle').checked;
-        document.getElementById('reelCommentStatus').textContent = enabled ? 'ON' : 'OFF';
-    }
-    
-    async function saveAutomationSettings() {
-        showLoading('Saving settings...');
-        
-        const settings = {
-            welcomeMessage: document.getElementById('welcomeMessage').value,
-            autoReplyMessage: document.getElementById('autoReplyMessage').value,
-            dmDelay: parseInt(document.getElementById('dmDelay').value) || 30,
-            dailyLimit: parseInt(document.getElementById('dailyLimit').value) || 50,
-            autoDmEnabled: document.getElementById('autoDmToggle').checked,
-            reelCommentEnabled: document.getElementById('reelCommentToggle').checked,
-            reelCommentReply: document.getElementById('reelCommentReply').value
-        };
-        
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ automation_settings: settings })
-                .eq('id', currentUser.id);
-            
-            if (error) throw error;
-            
-            userProfile.automation_settings = settings;
-            showToast('Settings saved successfully!');
-        } catch (err) {
-            showToast('Error saving settings', 'error');
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    function addReelKeyword() {
-        const keyword = document.getElementById('newReelKeyword').value.trim();
-        const response = document.getElementById('newReelResponse').value.trim();
-        
-        if (!keyword || !response) {
-            showToast('Please fill both keyword and response', 'error');
-            return;
-        }
-        
-        // Add to UI
-        const list = document.getElementById('reelKeywordsList');
-        const newItem = document.createElement('div');
-        newItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-        newItem.innerHTML = `
-            <span class="font-medium">"${escapeHtml(keyword)}"</span>
-            <span class="text-sm text-gray-600">Reply: ${escapeHtml(response)}</span>
-            <button class="text-red-500 hover:text-red-700" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
-        `;
-        list.appendChild(newItem);
-        
-        // Clear inputs
-        document.getElementById('newReelKeyword').value = '';
-        document.getElementById('newReelResponse').value = '';
-        
-        showToast('Keyword added');
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // BILLING FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function switchBilling(type) {
-        billingType = type;
-        const monthlyBtn = document.getElementById('monthlyBtn');
-        const yearlyBtn = document.getElementById('yearlyBtn');
-        
-        if (type === 'monthly') {
-            monthlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.remove('text-gray-600');
-            yearlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.add('text-gray-600');
-        } else {
-            yearlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.remove('text-gray-600');
-            monthlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.add('text-gray-600');
-        }
-        
-        document.querySelectorAll('.price-amount').forEach(el => el.textContent = el.dataset[type]);
-        document.querySelectorAll('.billing-text').forEach(el => el.textContent = type === 'monthly' ? '/month' : '/year');
-    }
-    
-    function selectPlan(plan) {
-        openLoginModal();
-        showToast(`Please login to select ${plan} plan`);
-    }
-    
-    function switchBillingType(type) {
-        billingType = type;
-        
-        const monthlyBtn = document.getElementById('billingMonthlyBtn');
-        const yearlyBtn = document.getElementById('billingYearlyBtn');
-        
-        if (type === 'monthly') {
-            monthlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.remove('text-gray-600');
-            yearlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.add('text-gray-600');
-        } else {
-            yearlyBtn.classList.add('bg-white', 'shadow', 'text-purple-600');
-            yearlyBtn.classList.remove('text-gray-600');
-            monthlyBtn.classList.remove('bg-white', 'shadow', 'text-purple-600');
-            monthlyBtn.classList.add('text-gray-600');
-        }
-        
-        document.querySelectorAll('.plan-price').forEach(el => {
-            el.textContent = el.dataset[type];
-        });
-        
-        document.querySelectorAll('.plan-period').forEach(el => {
-            el.textContent = type === 'monthly' ? '/month' : '/year';
-        });
-    }
-    
-    function selectUpgradePlan(plan) {
-        selectedPlan = plan;
-        
-        const prices = {
-            starter: { monthly: 499, yearly: 4790 },
-            pro: { monthly: 999, yearly: 9590 },
-            enterprise: { monthly: 2499, yearly: 23990 }
-        };
-        
-        const planNames = { starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
-        
-        document.getElementById('paymentPlanName').textContent = planNames[plan] + ' Plan';
-        document.getElementById('paymentAmount').textContent = prices[plan][billingType];
-        document.getElementById('paymentPeriod').textContent = billingType === 'monthly' ? 'per month' : 'per year';
-        
-        document.getElementById('paymentModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closePaymentModal() {
-        document.getElementById('paymentModal').classList.remove('active');
-        document.body.style.overflow = '';
-        document.getElementById('upiSection').classList.add('hidden');
-        document.getElementById('upiTxnId').value = '';
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // UTILITY FUNCTIONS
-    // ══════════════════════════════════════════════════════════════════
-    function toggleMobileMenu() { 
-        document.getElementById('mobileMenu').classList.toggle('hidden'); 
-    }
-    
-    function toggleFaq(button) {
-        const content = button.nextElementSibling;
-        const icon = button.querySelector('i');
-        content.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
-    }
-    
-    function showLoading(text = 'Please wait...') {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingModal').classList.add('active');
-    }
-    
-    function hideLoading() {
-        document.getElementById('loadingModal').classList.remove('active');
-    }
-    
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toastIcon');
-        const msg = document.getElementById('toastMessage');
-        
-        msg.textContent = message;
-        
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle text-green-500 text-xl';
-        } else if (type === 'error') {
-            icon.className = 'fas fa-exclamation-circle text-red-500 text-xl';
-        } else {
-            icon.className = 'fas fa-info-circle text-blue-500 text-xl';
-        }
-        
-        toast.classList.remove('hide');
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            hideToast();
-        }, 4000);
-    }
-    
-    function hideToast() {
-        const toast = document.getElementById('toast');
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-    }
-    
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    async function logout() {
-        showLoading('Logging out...');
-        try {
+
+        async function logout() {
+            showLoading('Signing out...');
             await supabase.auth.signOut();
+            currentUser = null;
+            userProfile = null;
+            hideLoading();
             showLandingPage();
             showToast('Logged out successfully');
-        } catch (err) {
-            showLandingPage();
-        } finally {
-            hideLoading();
         }
-    }
-    
-    async function updateProfile() {
-        const name = document.getElementById('settingsName').value.trim();
-        const phone = document.getElementById('settingsPhone').value.trim();
-        
-        if (!name) {
-            showToast('Name cannot be empty', 'error');
-            return;
-        }
-        
-        showLoading('Updating profile...');
-        
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    full_name: name,
-                    phone: phone,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', currentUser.id);
+
+        function updateDashboardUI() {
+            if(!userProfile) return;
+            document.getElementById('userName').textContent = userProfile.full_name || 'User';
+            document.getElementById('dropdownEmail').textContent = userProfile.email;
+            document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.full_name)}&background=7c3aed&color=fff`;
             
-            if (error) throw error;
+            // Plan Stats
+            document.getElementById('currentPlan').textContent = (userProfile.plan || 'free').toUpperCase();
+            document.getElementById('dropdownRole').textContent = (userProfile.plan || 'free').toUpperCase();
+            document.getElementById('dmsUsed').textContent = userProfile.dms_used || 0;
+            document.getElementById('dmsLimit').textContent = userProfile.dms_limit || 100;
+            document.getElementById('totalDms').textContent = userProfile.dms_used || 0;
+
+            // Update Progress Bar
+            const percent = ((userProfile.dms_used || 0) / (userProfile.dms_limit || 100)) * 100;
+            document.getElementById('usageBar').style.width = `${Math.min(percent, 100)}%`;
+
+            // Admin Access Check
+            if (userProfile.email === ADMIN_EMAIL) {
+                document.getElementById('adminNavLink').classList.remove('hidden');
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // BILLING & PAYMENT (PHONEPE)
+        // ══════════════════════════════════════════════════════════════════
+        function switchBillingType(type) {
+            billingType = type;
+            const toggle = document.getElementById('billingToggle');
+            const prices = document.querySelectorAll('.plan-price');
             
-            showToast('Profile updated successfully!');
-            await loadUserProfile();
-        } catch (err) {
-            showToast('Error updating profile', 'error');
-        } finally {
-            hideLoading();
+            if (type === 'yearly') {
+                toggle.classList.add('translate-x-5');
+                prices.forEach(el => el.textContent = el.dataset.yearly);
+                document.querySelectorAll('.plan-period').forEach(el => el.textContent = '/year');
+            } else {
+                toggle.classList.remove('translate-x-5');
+                prices.forEach(el => el.textContent = el.dataset.monthly);
+                document.querySelectorAll('.plan-period').forEach(el => el.textContent = '/month');
+            }
         }
-    }
-    
-    async function deleteAccount() {
-        if (!confirm('⚠️ Are you sure you want to delete your account?\n\nThis action CANNOT be undone!')) return;
-        
-        showLoading('Deleting account...');
-        
-        try {
-            await supabase.from('profiles').delete().eq('id', currentUser.id);
-            await supabase.auth.signOut();
-            showLandingPage();
-            showToast('Account deleted successfully');
-        } catch (err) {
-            hideLoading();
-            showToast('Error deleting account', 'error');
+
+        function selectUpgradePlan(planId) {
+            selectedPlan = planId;
+            const price = document.querySelector(`.plan-price[data-${billingType}]`).parentElement.parentElement.querySelector(`.plan-price`).dataset[billingType];
+            
+            document.getElementById('paymentPlanName').textContent = planId.charAt(0).toUpperCase() + planId.slice(1) + ' Plan';
+            document.getElementById('paymentAmount').textContent = price;
+            document.getElementById('paymentPeriod').textContent = billingType === 'monthly' ? '/month' : '/year';
+            document.getElementById('displayUpiId').textContent = UPI_ID;
+            
+            openModal('paymentModal');
         }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // CHART INITIALIZATION
-    // ══════════════════════════════════════════════════════════════════
-    function initCharts() {
-        // DM Activity Chart
-        const dmCtx = document.getElementById('dmChart')?.getContext('2d');
-        if (dmCtx) {
-            new Chart(dmCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'DMs Sent',
-                        data: [12, 19, 15, 25, 22, 30, 28],
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointBackgroundColor: '#7c3aed',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-        
-        // Response Chart
-        const respCtx = document.getElementById('responseChart')?.getContext('2d');
-        if (respCtx) {
-            new Chart(respCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Replied', 'No Reply', 'Pending'],
-                    datasets: [{
-                        data: [65, 25, 10],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        } 
+
+        async function payWithPhonePe() {
+            if (!currentUser || !selectedPlan) {
+                showToast('Session expired. Please login again.', 'error');
+                return;
+            }
+            
+            showLoading('Initiating Secure Payment...');
+
+            try {
+                // 1. Get Session Token for API Security
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) throw new Error("Please login first");
+
+                // 2. Call Backend to create payment order
+                const response = await fetch(`${API_BASE_URL}/payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
                     },
-                    cutout: '60%'
+                    body: JSON.stringify({
+                        action: 'create-payment',
+                        userId: currentUser.id,
+                        plan: selectedPlan,
+                        billingType: billingType
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Payment initialization failed');
                 }
-            });
+
+                // 3. Redirect to PhonePe Gateway
+                // PhonePe requires a POST request with specific params
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = result.redirectUrl; // This comes from your backend
+
+                const inputPayload = document.createElement('input');
+                inputPayload.type = 'hidden';
+                inputPayload.name = 'request';
+                inputPayload.value = result.data.base64Payload;
+                form.appendChild(inputPayload);
+
+                const inputChecksum = document.createElement('input');
+                inputChecksum.type = 'hidden';
+                inputChecksum.name = 'X-VERIFY';
+                inputChecksum.value = result.data.checksum;
+                form.appendChild(inputChecksum);
+
+                document.body.appendChild(form);
+                form.submit();
+
+            } catch (error) {
+                console.error(error);
+                hideLoading();
+                showToast(error.message, 'error');
+            }
         }
-    }
-    
-    function initAdminCharts() {
-        // User Growth Chart
-        const userCtx = document.getElementById('userGrowthChart')?.getContext('2d');
-        if (userCtx) {
-            new Chart(userCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Users',
-                        data: [50, 120, 200, 350, 500, 750],
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
-            });
+
+        function verifyUPI() {
+            const txnId = document.getElementById('upiTxnId').value;
+            if(!txnId) return showToast('Please enter Transaction ID', 'error');
+            
+            showLoading('Verifying with Admin...');
+            setTimeout(() => {
+                hideLoading();
+                showToast('Payment submitted for verification!', 'success');
+                closePaymentModal();
+            }, 1500);
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // ADMIN LOGIC
+        // ══════════════════════════════════════════════════════════════════
+        function showAdminLogin() {
+            openModal('adminLoginModal');
         }
         
-        // Revenue Chart
-        const revCtx = document.getElementById('revenueChart')?.getContext('2d');
-        if (revCtx) {
-            new Chart(revCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Revenue (₹)',
-                        data: [15000, 25000, 40000, 55000, 75000, 95000],
-                        backgroundColor: '#ec4899'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
-            });
+        function closeAdminLoginModal() {
+            closeModal('adminLoginModal');
         }
-    }
-    
-    // Handle escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeLoginModal();
-            closeAdminLoginModal();
-            closeConnectModal();
-            closePaymentModal();
-            closeSidebar();
+
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                closeAdminLoginModal();
+                showAdminPanel();
+                showToast('Welcome Admin');
+                loadAdminData();
+            } else {
+                showToast('Invalid Admin Credentials', 'error');
+            }
         }
-    });
-    
-    // Initialize billing toggle
-    switchBilling('monthly');
-    switchBillingType('monthly');
-</script>
-</bodt>
+
+        function showAdminPanel() {
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('userDashboard').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+        }
+
+        async function loadAdminData() {
+            // In a real app, fetch from Supabase
+            // Mocking data for UI
+            const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+            document.getElementById('adminTotalUsers2').textContent = count || 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // MODAL UTILITIES
+        // ══════════════════════════════════════════════════════════════════
+        function openLoginModal() { openModal('loginModal'); }
+        function closeLoginModal() { closeModal('loginModal'); }
+        
+        function closePaymentModal() { closeModal('paymentModal'); }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text;
+            openModal('loadingModal');
+        }
+
+        function hideLoading() {
+            closeModal('loadingModal');
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            
+            document.getElementById('toastMessage').textContent = msg;
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle text-red-500 text-xl';
+            } else {
+                icon.className = 'fas fa-check-circle text-green-400 text-xl';
+            }
+            
+            toast.classList.remove('hide');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+            }, 3000);
+        }
+
+    </script>
+</body>
 </html>
