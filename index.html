@@ -1610,27 +1610,27 @@
             </div>
             
             <div class="space-y-4">
-                <!-- UPI Payment Options -->
-                <button onclick="showUPISection()" class="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
-                    <i class="fas fa-mobile-alt"></i> Pay with UPI
+                <!-- PhonePe Payment -->
+                <button onclick="createPhonePePayment()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-phone"></i> Pay with PhonePe
+                </button>
+                
+                <!-- Google Pay -->
+                <button onclick="payWithGooglePay()" class="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <i class="fab fa-google"></i> Pay with Google Pay
+                </button>
+                
+                <!-- UPI Payment -->
+                <button onclick="showUPISection()" class="w-full py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-university"></i> Pay with UPI
                 </button>
                 
                 <div id="upiSection" class="hidden">
                     <div class="p-4 bg-gray-50 rounded-xl text-center border">
-                        <p class="text-sm text-gray-600 mb-2">Scan QR or pay to UPI ID:</p>
-                        <p id="displayUpiId" class="font-mono font-bold text-lg text-gray-800">your-store@okicici</p>
-                        <div class="my-4">
-                            <p class="text-sm text-gray-500 mb-2">Or use PhonePe/Google Pay:</p>
-                            <div class="flex justify-center gap-4">
-                                <button onclick="initiatePhonePe()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                    <i class="fas fa-phone"></i> PhonePe
-                                </button>
-                                <button onclick="initiateGooglePay()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                                    <i class="fab fa-google"></i> Google Pay
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4 space-y-3">
+                        <p class="text-sm text-gray-600 mb-2">Pay to UPI ID:</p>
+                        <p id="displayUpiId" class="font-mono font-bold text-lg text-gray-800 mb-4">instabot.ai@okicici</p>
+                        
+                        <div class="space-y-3">
                             <input type="text" id="upiTxnId" placeholder="Enter Transaction ID / UTR Number" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-600">
                             <button onclick="verifyUPI()" class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
                                 <i class="fas fa-check-circle mr-2"></i> Verify Payment
@@ -1668,10 +1668,13 @@
     const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
     
+    // Backend API URL
+    const API_BASE_URL = '/api'; // Vercel will route to server.js
+    
     // 👤 ADMIN CREDENTIALS
     const ADMIN_EMAIL = 'sahanapraveen2006@gmail.com';
     const ADMIN_PASSWORD = 'rudra3745';
-    const ADMIN_EMAILS = ['sahanapraveen2006@gmail.com'];
+    const ADMIN_EMAILS = ['sahanapraveen2006@gmail.com', 'admin@instabot.ai'];
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
@@ -1701,7 +1704,60 @@
         
         // Setup event listeners
         setupEventListeners();
+        
+        // Initialize with server-side pricing
+        await loadPricingFromServer();
     });
+    
+    async function loadPricingFromServer() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get-prices' })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.prices) {
+                // Update pricing display
+                updatePricingDisplay(data.prices);
+            }
+        } catch (error) {
+            console.error('Failed to load pricing:', error);
+        }
+    }
+    
+    function updatePricingDisplay(prices) {
+        // Update starter plan
+        if (prices.starter) {
+            const starterMonthly = document.querySelector('.price-amount[data-monthly="499"]');
+            if (starterMonthly) {
+                starterMonthly.dataset.monthly = prices.starter.monthly;
+                starterMonthly.dataset.yearly = prices.starter.yearly;
+                starterMonthly.textContent = billingType === 'monthly' ? prices.starter.monthly : prices.starter.yearly;
+            }
+        }
+        
+        // Update pro plan
+        if (prices.pro) {
+            const proMonthly = document.querySelector('.price-amount[data-monthly="999"]');
+            if (proMonthly) {
+                proMonthly.dataset.monthly = prices.pro.monthly;
+                proMonthly.dataset.yearly = prices.pro.yearly;
+                proMonthly.textContent = billingType === 'monthly' ? prices.pro.monthly : prices.pro.yearly;
+            }
+        }
+        
+        // Update enterprise plan
+        if (prices.enterprise) {
+            const enterpriseMonthly = document.querySelector('.price-amount[data-monthly="2499"]');
+            if (enterpriseMonthly) {
+                enterpriseMonthly.dataset.monthly = prices.enterprise.monthly;
+                enterpriseMonthly.dataset.yearly = prices.enterprise.yearly;
+                enterpriseMonthly.textContent = billingType === 'monthly' ? prices.enterprise.monthly : prices.enterprise.yearly;
+            }
+        }
+    }
     
     function setupEventListeners() {
         // Navigation links for user dashboard
@@ -1805,7 +1861,6 @@
         
         // Plan names and limits
         const planNames = { free: 'Free Plan', starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
-        const planLimits = { free: 100, starter: 500, pro: 2000, enterprise: 999999 };
         const planLabel = planNames[userProfile.plan] || 'Free Plan';
         
         // Update plan displays
@@ -1813,14 +1868,14 @@
         document.getElementById('billingPlanName').textContent = planLabel;
         document.getElementById('dropdownRole').textContent = planLabel;
         document.getElementById('dmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('dmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
+        document.getElementById('dmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (userProfile.dms_limit || 100);
         
         // Update billing section
         document.getElementById('billingDmsUsed').textContent = userProfile.dms_used || 0;
-        document.getElementById('billingDmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (planLimits[userProfile.plan] || 100);
+        document.getElementById('billingDmsLimit').textContent = userProfile.plan === 'enterprise' ? '∞' : (userProfile.dms_limit || 100);
         
         // Usage bar
-        const limit = planLimits[userProfile.plan] || 100;
+        const limit = userProfile.dms_limit || 100;
         const usagePercent = userProfile.plan === 'enterprise' ? 0 : ((userProfile.dms_used || 0) / limit) * 100;
         document.getElementById('usageBar').style.width = `${Math.min(usagePercent, 100)}%`;
         
@@ -1887,14 +1942,33 @@
         
         showLoading('Logging in...');
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+            const response = await fetch(`${API_BASE_URL}/auth`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'login',
+                    email: email,
+                    password: password
+                })
+            });
             
-            await handleUserLogin(data.user);
-            closeLoginModal();
-            showToast('Login successful!');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Set session
+                await supabase.auth.setSession({
+                    access_token: data.session.access_token,
+                    refresh_token: data.session.refresh_token
+                });
+                
+                await handleUserLogin(data.user);
+                closeLoginModal();
+                showToast('Login successful!');
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
-            showToast(error.message, 'error');
+            showToast('Login failed. Please try again.', 'error');
         } finally {
             hideLoading();
         }
@@ -1912,24 +1986,27 @@
         
         showLoading('Creating account...');
         try {
-            const { data, error } = await supabase.auth.signUp({
-                email, password,
-                options: { data: { full_name: name } }
-            });
-            if (error) throw error;
-            
-            // Create profile
-            await supabase.from('profiles').insert({
-                id: data.user.id,
-                email, full_name: name,
-                plan: 'free', dms_limit: 100, dms_used: 0,
-                status: 'active', created_at: new Date().toISOString()
+            const response = await fetch(`${API_BASE_URL}/auth`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'signup',
+                    email: email,
+                    password: password,
+                    name: name
+                })
             });
             
-            showToast('Account created! Please check your email.');
-            setTimeout(() => showLogin(), 2000);
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('Account created! Please check your email.');
+                setTimeout(() => showLogin(), 2000);
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
-            showToast(error.message, 'error');
+            showToast('Signup failed. Please try again.', 'error');
         } finally {
             hideLoading();
         }
@@ -1957,33 +2034,34 @@
         const password = document.getElementById('adminPassword').value;
         
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-            closeAdminLoginModal();
-            showAdminPanel();
-            loadAdminData();
-            showToast('Welcome, Admin!');
+            // Use server-side auth
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'login',
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    closeAdminLoginModal();
+                    showAdminPanel();
+                    loadAdminData();
+                    showToast('Welcome, Admin!');
+                } else {
+                    showToast('Invalid credentials', 'error');
+                }
+            } catch (error) {
+                showToast('Login failed', 'error');
+            }
             return;
         }
         
-        // Also check Supabase for admin users
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            
-            if (error) throw error;
-            
-            if (ADMIN_EMAILS.includes(email.toLowerCase())) {
-                closeAdminLoginModal();
-                showAdminPanel();
-                loadAdminData();
-                showToast('Welcome, Admin!');
-            } else {
-                showToast('Not an admin account', 'error');
-            }
-        } catch (error) {
-            showToast('Invalid credentials', 'error');
-        }
+        showToast('Invalid admin credentials', 'error');
     }
     
     function adminLogout() {
@@ -2009,37 +2087,69 @@
         showLoading('Loading admin data...');
         
         try {
-            // Load users
-            const { data: users } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
+            // Get admin token
+            const { data: { session } } = await supabase.auth.getSession();
             
-            allUsers = users || [];
+            // Load stats
+            const statsResponse = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ action: 'get-stats' })
+            });
+            
+            const statsData = await statsResponse.json();
+            
+            if (statsData.success) {
+                const stats = statsData.stats;
+                document.getElementById('adminTotalUsers2').textContent = stats.totalUsers;
+                document.getElementById('adminActiveSubscriptions').textContent = stats.activeSubscriptions;
+                document.getElementById('adminTotalRevenue').textContent = `₹${stats.totalRevenue}`;
+                document.getElementById('adminTotalDmsSent').textContent = stats.totalDms;
+            }
+            
+            // Load users
+            const usersResponse = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'get-users',
+                    page: 1,
+                    limit: 50
+                })
+            });
+            
+            const usersData = await usersResponse.json();
+            if (usersData.success) {
+                allUsers = usersData.users || [];
+                renderUsersTableAdmin();
+            }
             
             // Load payments
-            const { data: payments } = await supabase
-                .from('payments')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const paymentsResponse = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'get-payments',
+                    status: 'all',
+                    page: 1,
+                    limit: 50
+                })
+            });
             
-            allPayments = payments || [];
-            
-            // Update stats
-            document.getElementById('adminTotalUsers2').textContent = allUsers.length;
-            document.getElementById('adminActiveSubscriptions').textContent = allUsers.filter(u => u.plan !== 'free').length;
-            
-            const totalRevenue = allPayments
-                .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + (p.amount || 0), 0);
-            document.getElementById('adminTotalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
-            
-            const totalDms = allUsers.reduce((sum, u) => sum + (u.dms_used || 0), 0);
-            document.getElementById('adminTotalDmsSent').textContent = totalDms.toLocaleString();
-            
-            // Render tables
-            renderUsersTableAdmin();
-            renderPaymentsTableAdmin();
+            const paymentsData = await paymentsResponse.json();
+            if (paymentsData.success) {
+                allPayments = paymentsData.payments || [];
+                renderPaymentsTableAdmin();
+            }
             
             // Load plan prices
             await loadPlanPrices();
@@ -2115,19 +2225,31 @@
         
         showLoading('Updating user...');
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    plan: newPlan,
-                    dms_limit: parseInt(newDmsLimit),
-                    updated_at: new Date().toISOString()
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'update-user',
+                    userId: userId,
+                    updates: {
+                        plan: newPlan,
+                        dms_limit: parseInt(newDmsLimit)
+                    }
                 })
-                .eq('id', userId);
+            });
             
-            if (error) throw error;
-            
-            showToast('User updated successfully');
-            await loadAdminData();
+            const data = await response.json();
+            if (data.success) {
+                showToast('User updated successfully');
+                await loadAdminData();
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error updating user', 'error');
         } finally {
@@ -2140,19 +2262,27 @@
         
         showLoading('Deleting user...');
         try {
-            // Delete user profile
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .delete()
-                .eq('id', userId);
+            const { data: { session } } = await supabase.auth.getSession();
             
-            if (profileError) throw profileError;
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'delete-user',
+                    userId: userId
+                })
+            });
             
-            // Delete user from auth
-            const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-            
-            showToast('User deleted successfully');
-            await loadAdminData();
+            const data = await response.json();
+            if (data.success) {
+                showToast('User deleted successfully');
+                await loadAdminData();
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error deleting user', 'error');
         } finally {
@@ -2162,14 +2292,20 @@
     
     async function loadPlanPrices() {
         try {
-            const { data } = await supabase
-                .from('settings')
-                .select('*')
-                .eq('key', 'plan_prices')
-                .single();
+            const { data: { session } } = await supabase.auth.getSession();
             
-            if (data?.value) {
-                const prices = data.value;
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ action: 'get-settings' })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.settings.plan_prices) {
+                const prices = data.settings.plan_prices;
                 document.getElementById('starterMonthly').value = prices.starter?.monthly || 499;
                 document.getElementById('starterYearly').value = prices.starter?.yearly || 4790;
                 document.getElementById('starterDmLimit').value = prices.starter?.dmLimit || 500;
@@ -2221,21 +2357,30 @@
         };
         
         try {
-            const { error } = await supabase
-                .from('settings')
-                .upsert({
-                    key: 'plan_prices',
-                    value: prices,
-                    updated_at: new Date().toISOString()
-                });
+            const { data: { session } } = await supabase.auth.getSession();
             
-            if (error) throw error;
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'update-prices',
+                    prices: prices
+                })
+            });
             
-            showToast('Plan prices updated successfully!');
-            
-            // Update pricing on landing page
-            updateLandingPagePricing(prices);
-            
+            const data = await response.json();
+            if (data.success) {
+                showToast('Plan prices updated successfully!');
+                
+                // Update pricing on landing page
+                updateLandingPagePricing(prices);
+                
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error saving prices', 'error');
         } finally {
@@ -2245,35 +2390,31 @@
     
     function updateLandingPagePricing(prices) {
         // Update starter plan
-        document.querySelectorAll('.price-amount[data-monthly="499"]').forEach(el => {
-            el.dataset.monthly = prices.starter.monthly;
-            el.dataset.yearly = prices.starter.yearly;
-            if (billingType === 'monthly') {
-                el.textContent = prices.starter.monthly;
-            } else {
-                el.textContent = prices.starter.yearly;
-            }
-        });
-        
-        // Update pro plan
-        document.querySelectorAll('.price-amount[data-monthly="999"]').forEach(el => {
-            el.dataset.monthly = prices.pro.monthly;
-            el.dataset.yearly = prices.pro.yearly;
-            if (billingType === 'monthly') {
-                el.textContent = prices.pro.monthly;
-            } else {
-                el.textContent = prices.pro.yearly;
-            }
-        });
-        
-        // Update enterprise plan
-        document.querySelectorAll('.price-amount[data-monthly="2499"]').forEach(el => {
-            el.dataset.monthly = prices.enterprise.monthly;
-            el.dataset.yearly = prices.enterprise.yearly;
-            if (billingType === 'monthly') {
-                el.textContent = prices.enterprise.monthly;
-            } else {
-                el.textContent = prices.enterprise.yearly;
+        document.querySelectorAll('.price-amount[data-monthly]').forEach(el => {
+            if (el.dataset.monthly === "499") {
+                el.dataset.monthly = prices.starter.monthly;
+                el.dataset.yearly = prices.starter.yearly;
+                if (billingType === 'monthly') {
+                    el.textContent = prices.starter.monthly;
+                } else {
+                    el.textContent = prices.starter.yearly;
+                }
+            } else if (el.dataset.monthly === "999") {
+                el.dataset.monthly = prices.pro.monthly;
+                el.dataset.yearly = prices.pro.yearly;
+                if (billingType === 'monthly') {
+                    el.textContent = prices.pro.monthly;
+                } else {
+                    el.textContent = prices.pro.yearly;
+                }
+            } else if (el.dataset.monthly === "2499") {
+                el.dataset.monthly = prices.enterprise.monthly;
+                el.dataset.yearly = prices.enterprise.yearly;
+                if (billingType === 'monthly') {
+                    el.textContent = prices.enterprise.monthly;
+                } else {
+                    el.textContent = prices.enterprise.yearly;
+                }
             }
         });
     }
@@ -2314,11 +2455,11 @@
             const user = allUsers.find(u => u.id === payment.user_id);
             return `
             <tr class="hover:bg-gray-700/50">
-                <td class="px-6 py-4 font-mono text-sm">${payment.id?.substring(0, 8) || 'N/A'}</td>
+                <td class="px-6 py-4 font-mono text-sm">${payment.payment_id?.substring(0, 8) || 'N/A'}</td>
                 <td class="px-6 py-4 text-gray-300">${user?.email || 'Unknown'}</td>
                 <td class="px-6 py-4">${payment.plan?.toUpperCase() || 'N/A'}</td>
                 <td class="px-6 py-4">₹${payment.amount || 0}</td>
-                <td class="px-6 py-4">${payment.payment_method || 'UPI'}</td>
+                <td class="px-6 py-4">${payment.method || 'UPI'}</td>
                 <td class="px-6 py-4">
                     <span class="px-3 py-1 rounded-full text-xs font-medium ${
                         payment.status === 'completed' ? 'bg-green-600/20 text-green-400' :
@@ -2347,18 +2488,28 @@
         
         showLoading('Verifying payment...');
         try {
-            const { error } = await supabase
-                .from('payments')
-                .update({
-                    status: 'completed',
-                    updated_at: new Date().toISOString()
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'update-payment',
+                    paymentId: paymentId,
+                    status: 'completed'
                 })
-                .eq('id', paymentId);
+            });
             
-            if (error) throw error;
-            
-            showToast('Payment verified successfully');
-            await loadAdminData();
+            const data = await response.json();
+            if (data.success) {
+                showToast('Payment verified successfully');
+                await loadAdminData();
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error verifying payment', 'error');
         } finally {
@@ -2371,15 +2522,28 @@
         
         showLoading('Deleting payment...');
         try {
-            const { error } = await supabase
-                .from('payments')
-                .delete()
-                .eq('id', paymentId);
+            const { data: { session } } = await supabase.auth.getSession();
             
-            if (error) throw error;
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'update-payment',
+                    paymentId: paymentId,
+                    status: 'deleted'
+                })
+            });
             
-            showToast('Payment deleted successfully');
-            await loadAdminData();
+            const data = await response.json();
+            if (data.success) {
+                showToast('Payment deleted successfully');
+                await loadAdminData();
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error deleting payment', 'error');
         } finally {
@@ -2398,17 +2562,26 @@
         };
         
         try {
-            const { error } = await supabase
-                .from('settings')
-                .upsert({
-                    key: 'admin_settings',
-                    value: settings,
-                    updated_at: new Date().toISOString()
-                });
+            const { data: { session } } = await supabase.auth.getSession();
             
-            if (error) throw error;
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'update-settings',
+                    settings: settings
+                })
+            });
             
-            showToast('Admin settings saved successfully!');
+            const data = await response.json();
+            if (data.success) {
+                showToast('Admin settings saved successfully!');
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error saving settings', 'error');
         } finally {
@@ -2490,11 +2663,11 @@
             const user = allUsers.find(u => u.id === payment.user_id);
             return `
             <tr class="hover:bg-gray-700/50">
-                <td class="px-6 py-4 font-mono text-sm">${payment.id?.substring(0, 8) || 'N/A'}</td>
+                <td class="px-6 py-4 font-mono text-sm">${payment.payment_id?.substring(0, 8) || 'N/A'}</td>
                 <td class="px-6 py-4 text-gray-300">${user?.email || 'Unknown'}</td>
                 <td class="px-6 py-4">${payment.plan?.toUpperCase() || 'N/A'}</td>
                 <td class="px-6 py-4">₹${payment.amount || 0}</td>
-                <td class="px-6 py-4">${payment.payment_method || 'UPI'}</td>
+                <td class="px-6 py-4">${payment.method || 'UPI'}</td>
                 <td class="px-6 py-4">
                     <span class="px-3 py-1 rounded-full text-xs font-medium ${
                         payment.status === 'completed' ? 'bg-green-600/20 text-green-400' :
@@ -2544,7 +2717,7 @@
         let csv = 'Payment ID,User Email,Plan,Amount,Method,Status,Date\n';
         allPayments.forEach(payment => {
             const user = allUsers.find(u => u.id === payment.user_id);
-            csv += `"${payment.id || ''}","${user?.email || 'Unknown'}","${payment.plan}",${payment.amount},"${payment.payment_method || 'UPI'}","${payment.status}","${new Date(payment.created_at).toLocaleDateString()}"\n`;
+            csv += `"${payment.payment_id || ''}","${user?.email || 'Unknown'}","${payment.plan}",${payment.amount},"${payment.method || 'UPI'}","${payment.status}","${new Date(payment.created_at).toLocaleDateString()}"\n`;
         });
         
         // Create download link
@@ -2758,22 +2931,15 @@
         
         const planNames = { starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
         
+        // Get price from current display
+        const priceElement = document.querySelector(`.plan-price[data-monthly]`);
+        const monthlyPrice = priceElement ? parseInt(priceElement.dataset.monthly) : 
+            (plan === 'starter' ? 499 : plan === 'pro' ? 999 : 2499);
+        const yearlyPrice = priceElement ? parseInt(priceElement.dataset.yearly) : 
+            (plan === 'starter' ? 4790 : plan === 'pro' ? 9590 : 23990);
+        
         document.getElementById('paymentPlanName').textContent = planNames[plan] + ' Plan';
-        
-        // Get price from admin settings or default
-        const monthlyPrices = {
-            starter: parseInt(document.getElementById('starterMonthly')?.value || 499),
-            pro: parseInt(document.getElementById('proMonthly')?.value || 999),
-            enterprise: parseInt(document.getElementById('enterpriseMonthly')?.value || 2499)
-        };
-        
-        const yearlyPrices = {
-            starter: parseInt(document.getElementById('starterYearly')?.value || 4790),
-            pro: parseInt(document.getElementById('proYearly')?.value || 9590),
-            enterprise: parseInt(document.getElementById('enterpriseYearly')?.value || 23990)
-        };
-        
-        document.getElementById('paymentAmount').textContent = billingType === 'monthly' ? monthlyPrices[plan] : yearlyPrices[plan];
+        document.getElementById('paymentAmount').textContent = billingType === 'monthly' ? monthlyPrice : yearlyPrice;
         document.getElementById('paymentPeriod').textContent = billingType === 'monthly' ? 'per month' : 'per year';
         
         document.getElementById('paymentModal').classList.add('active');
@@ -2785,6 +2951,76 @@
         document.body.style.overflow = '';
         document.getElementById('upiSection').classList.add('hidden');
         document.getElementById('upiTxnId').value = '';
+    }
+    
+    async function createPhonePePayment() {
+        showLoading('Creating PhonePe payment...');
+        
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const amount = document.getElementById('paymentAmount').textContent;
+            
+            const response = await fetch(`${API_BASE_URL}/payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'create-payment',
+                    userId: currentUser.id,
+                    plan: selectedPlan,
+                    billingType: billingType,
+                    amount: parseInt(amount)
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                // Redirect to PhonePe payment page
+                const phonePeForm = document.createElement('form');
+                phonePeForm.method = 'POST';
+                phonePeForm.action = data.redirectUrl;
+                
+                const payloadInput = document.createElement('input');
+                payloadInput.type = 'hidden';
+                payloadInput.name = 'base64Payload';
+                payloadInput.value = data.data.base64Payload;
+                phonePeForm.appendChild(payloadInput);
+                
+                const checksumInput = document.createElement('input');
+                checksumInput.type = 'hidden';
+                checksumInput.name = 'checksum';
+                checksumInput.value = data.data.checksum;
+                phonePeForm.appendChild(checksumInput);
+                
+                const merchantIdInput = document.createElement('input');
+                merchantIdInput.type = 'hidden';
+                merchantIdInput.name = 'merchantId';
+                merchantIdInput.value = data.data.merchantId;
+                phonePeForm.appendChild(merchantIdInput);
+                
+                document.body.appendChild(phonePeForm);
+                phonePeForm.submit();
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            showToast('Payment creation failed', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    function payWithGooglePay() {
+        const amount = document.getElementById('paymentAmount').textContent;
+        const plan = document.getElementById('paymentPlanName').textContent;
+        
+        // Google Pay UPI link
+        const gpayLink = `upi://pay?pa=instabot.ai@okicici&pn=InstaBot AI&am=${amount}&tn=Payment for ${plan}`;
+        
+        window.open(gpayLink, '_blank');
+        showToast('Opening Google Pay... Please complete payment.');
     }
     
     function showUPISection() {
@@ -2802,71 +3038,39 @@
         showLoading('Verifying payment...');
         
         try {
-            // Create payment record
-            const payment = {
-                user_id: currentUser.id,
-                plan: selectedPlan,
-                amount: billingType === 'monthly' ? 
-                    (selectedPlan === 'starter' ? 499 : selectedPlan === 'pro' ? 999 : 2499) :
-                    (selectedPlan === 'starter' ? 4790 : selectedPlan === 'pro' ? 9590 : 23990),
-                payment_method: 'UPI',
-                transaction_id: txnId,
-                status: 'pending',
-                billing_type: billingType,
-                created_at: new Date().toISOString()
-            };
+            const { data: { session } } = await supabase.auth.getSession();
+            const amount = document.getElementById('paymentAmount').textContent;
             
-            const { error } = await supabase
-                .from('payments')
-                .insert(payment);
-            
-            if (error) throw error;
-            
-            // Update user plan
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .update({
+            const response = await fetch(`${API_BASE_URL}/payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'verify_upi',
+                    userId: currentUser.id,
                     plan: selectedPlan,
-                    dms_limit: selectedPlan === 'starter' ? 500 : selectedPlan === 'pro' ? 2000 : 999999,
-                    updated_at: new Date().toISOString()
+                    billingType: billingType,
+                    txnId: txnId
                 })
-                .eq('id', currentUser.id);
+            });
             
-            if (profileError) throw profileError;
-            
-            closePaymentModal();
-            showToast('Payment submitted! Our team will verify within 24 hours.');
-            
-            // Reload user profile
-            await loadUserProfile();
-            
+            const data = await response.json();
+            if (data.success) {
+                closePaymentModal();
+                showToast('Payment submitted! Our team will verify within 24 hours.');
+                
+                // Reload user profile
+                await loadUserProfile();
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (error) {
             showToast('Error processing payment', 'error');
         } finally {
             hideLoading();
         }
-    }
-    
-    function initiatePhonePe() {
-        const amount = document.getElementById('paymentAmount').textContent;
-        const plan = document.getElementById('paymentPlanName').textContent;
-        
-        // PhonePe deep link format
-        const phonePeUrl = `phonepay://pay?pa=your-store@okicici&pn=InstaBot AI&am=${amount}&tn=Payment for ${plan}`;
-        
-        window.open(phonePeUrl, '_blank');
-        showToast('Opening PhonePe... Please complete payment.');
-    }
-    
-    function initiateGooglePay() {
-        const amount = document.getElementById('paymentAmount').textContent;
-        const plan = document.getElementById('paymentPlanName').textContent;
-        
-        // Google Pay deep link format
-        const gpayUrl = `tez://upi/pay?pa=your-store@okicici&pn=InstaBot AI&am=${amount}&tn=Payment for ${plan}`;
-        
-        window.open(gpayUrl, '_blank');
-        showToast('Opening Google Pay... Please complete payment.');
     }
     
     // ══════════════════════════════════════════════════════════════════
@@ -2979,10 +3183,28 @@
         showLoading('Deleting account...');
         
         try {
-            await supabase.from('profiles').delete().eq('id', currentUser.id);
-            await supabase.auth.signOut();
-            showLandingPage();
-            showToast('Account deleted successfully');
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const response = await fetch(`${API_BASE_URL}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'delete-user',
+                    userId: currentUser.id
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                await supabase.auth.signOut();
+                showLandingPage();
+                showToast('Account deleted successfully');
+            } else {
+                showToast(data.error, 'error');
+            }
         } catch (err) {
             hideLoading();
             showToast('Error deleting account', 'error');
