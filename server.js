@@ -57,6 +57,8 @@ module.exports = async (req, res) => {
             return await handlePayment(req, res);
         } else if (path === '/api/webhook') {
             return await handleWebhook(req, res);
+        } else if (path === '/api/health') {
+            return res.status(200).json({ status: 'ok', message: 'InstaBot AI API is running' });
         } else {
             return res.status(404).json({ error: 'Endpoint not found' });
         }
@@ -539,7 +541,7 @@ async function handlePayment(req, res) {
         
         switch (action) {
             case 'create-payment':
-                return await createPhonePePayment(res, userId, plan, billingType);
+                return await createPhonePePayment(res, userId, plan, billingType, req);
             
             case 'verify_upi':
                 return await verifyUPIPayment(res, userId, plan, billingType, txnId);
@@ -563,7 +565,7 @@ async function handlePayment(req, res) {
 }
 
 // 📱 PHONEPE PAYMENT CREATION FUNCTION
-async function createPhonePePayment(res, userId, plan, billingType) {
+async function createPhonePePayment(res, userId, plan, billingType, req) {
     try {
         // Get prices
         const prices = await getPricesFromDB();
@@ -589,16 +591,19 @@ async function createPhonePePayment(res, userId, plan, billingType) {
         // Create unique transaction ID
         const transactionId = `TXN${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
         
+        // Determine origin for redirect URLs
+        const origin = req.headers.origin || req.headers.host || 'http://localhost:3000';
+        
         // PhonePe payment payload
         const payload = {
             merchantId: PHONEPE_CONFIG.merchantId,
             merchantTransactionId: transactionId,
             merchantUserId: userId,
             amount: amount,
-            redirectUrl: `${req.headers.origin}/dashboard.html?payment=success`,
+            redirectUrl: `${origin}/dashboard.html?payment=success`,
             redirectMode: 'REDIRECT',
-            callbackUrl: `${req.headers.origin}/api/webhook?type=phonepe`,
-            mobileNumber: '9999999999', // User can enter their number
+            callbackUrl: `${origin}/api/webhook?type=phonepe`,
+            mobileNumber: '9999999999',
             paymentInstrument: {
                 type: 'PAY_PAGE'
             }
