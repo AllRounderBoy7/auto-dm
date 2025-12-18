@@ -1,14 +1,20 @@
 {
   "name": "instagram-ai-agent",
   "version": "1.0.0",
+  "description": "Complete Instagram Automation Platform with AI",
+  "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'Build complete'"
+    "build": "echo 'Build complete'",
+    "start": "node api/server.js",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.6.0",
-    "crypto-js": "^4.2.0",
-    "razorpay": "^2.9.2"
+    "crypto": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
