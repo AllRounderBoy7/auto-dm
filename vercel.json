@@ -1,11 +1,19 @@
 {
   "version": 2,
   "builds": [
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "api/*.js", "use": "@vercel/node" }
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/server.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+    { "src": "/api/(.*)", "dest": "/api/server.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "SUPABASE_URL": "https://uvnksakgjupnivmfkjcv.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA",
+    "ADMIN_MASTER_KEY": "admin123",
+    "PHONEPE_MERCHANT_ID": "PGTESTPAYUAT",
+    "PHONEPE_SALT_KEY": "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399",
+    "PHONEPE_SALT_INDEX": "1"
+  }
 }
