@@ -1875,13 +1875,11 @@
         // ============================================
         const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
-        const UPI_ID = 'your-upi@ybl'; // CHANGE THIS TO YOUR UPI ID
-        const UPI_NAME = 'InstaBot Pro'; // CHANGE THIS TO YOUR NAME
+        const UPI_ID = 'your-upi@ybl'; // CHANGE THIS
+        const UPI_NAME = 'InstaBot Pro';
 
         // ============================================
         // SUPABASE INITIALIZATION
-        // API Endpoint: SUPABASE_URL + '/rest/v1/'
-        // Auth Endpoint: SUPABASE_URL + '/auth/v1/'
         // ============================================
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1899,49 +1897,49 @@
         // ============================================
         // PARTICLES INITIALIZATION
         // ============================================
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: '#6366f1' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.5, random: false },
-                size: { value: 3, random: true },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: '#6366f1',
-                    opacity: 0.4,
-                    width: 1
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#6366f1' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: false },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#6366f1',
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false
+                    }
                 },
-                move: {
-                    enable: true,
-                    speed: 2,
-                    direction: 'none',
-                    random: false,
-                    straight: false,
-                    out_mode: 'out',
-                    bounce: false
-                }
-            },
-            interactivity: {
-                detect_on: 'canvas',
-                events: {
-                    onhover: { enable: true, mode: 'repulse' },
-                    onclick: { enable: true, mode: 'push' },
-                    resize: true
-                }
-            },
-            retina_detect: true
-        });
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+        }
 
         // ============================================
-        // AUTHENTICATION FUNCTIONS
-        // API: /auth/v1/signup, /auth/v1/token?grant_type=password
+        // AUTHENTICATION
         // ============================================
         async function loginWithGoogle() {
             showLoading();
             try {
-                // API: POST /auth/v1/authorize (Google OAuth)
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
@@ -1953,13 +1951,13 @@
             } catch (error) {
                 hideLoading();
                 showToast('Login failed: ' + error.message, 'error');
+                console.error('Login error:', error);
             }
         }
 
         async function logout() {
             showLoading();
             try {
-                // API: POST /auth/v1/logout
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
                 
@@ -1976,42 +1974,58 @@
 
         // ============================================
         // SESSION MANAGEMENT
-        // API: GET /auth/v1/user
         // ============================================
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) throw error;
+                
+                if (session?.user) {
+                    currentUser = session.user;
+                    await initializeUser();
+                } else {
+                    document.getElementById('landingPage').style.display = 'block';
+                    document.getElementById('dashboardPage').style.display = 'none';
+                    hideLoading();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                hideLoading();
+            }
+        }
+
         supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session?.user) {
+            console.log('Auth state changed:', event, session);
+            
+            if (event === 'SIGNED_IN' && session?.user) {
                 currentUser = session.user;
                 await initializeUser();
-            } else {
+            } else if (event === 'SIGNED_OUT') {
                 currentUser = null;
+                currentUserData = null;
                 document.getElementById('landingPage').style.display = 'block';
                 document.getElementById('dashboardPage').style.display = 'none';
             }
-            hideLoading();
         });
 
         // ============================================
         // USER INITIALIZATION
-        // API: GET /rest/v1/users, POST /rest/v1/users
         // ============================================
         async function initializeUser() {
             showLoading();
             try {
-                // Check if user exists in database
-                // API: GET /rest/v1/users?id=eq.{user.id}
                 let { data: userData, error: fetchError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', currentUser.id)
-                    .single();
+                    .maybeSingle();
 
-                if (fetchError && fetchError.code !== 'PGRST116') {
-                    throw fetchError;
+                if (fetchError) {
+                    console.error('Fetch user error:', fetchError);
                 }
 
-                // Create user if doesn't exist
                 if (!userData) {
-                    // API: POST /rest/v1/users
                     const { data: newUser, error: createError } = await supabase
                         .from('users')
                         .insert([{
@@ -2029,7 +2043,10 @@
                         .select()
                         .single();
 
-                    if (createError) throw createError;
+                    if (createError) {
+                        console.error('Create user error:', createError);
+                        throw createError;
+                    }
                     userData = newUser;
                 }
 
@@ -2040,24 +2057,22 @@
                 document.getElementById('landingPage').style.display = 'none';
                 document.getElementById('dashboardPage').style.display = 'block';
             } catch (error) {
-                showToast('Failed to initialize user: ' + error.message, 'error');
+                console.error('Initialize user error:', error);
+                showToast('Failed to initialize: ' + error.message, 'error');
             }
             hideLoading();
         }
 
         // ============================================
         // PLAN MANAGEMENT
-        // API: GET /rest/v1/plans
         // ============================================
         function updateUserPlan() {
             const planType = currentUserData.plan_type;
             
-            // Update badge
             const badge = document.getElementById('userPlanBadge');
             badge.className = 'badge badge-' + planType;
             badge.textContent = planType.charAt(0).toUpperCase() + planType.slice(1);
 
-            // Set plan limits
             if (planType === 'free') {
                 userPlan = { type: 'free', contactsLimit: 1000, automationsLimit: 3 };
             } else if (planType === 'pro') {
@@ -2071,38 +2086,22 @@
         // DASHBOARD LOADING
         // ============================================
         async function loadDashboard() {
-            // Update user info
             document.getElementById('userName').textContent = currentUserData.name;
             document.getElementById('userAvatar').src = currentUserData.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUserData.name);
             
-            // Load stats
             await loadStats();
-            
-            // Load automations
             await loadAutomations();
-            
-            // Load contacts
             await loadContacts();
-            
-            // Load messages
             await loadMessages();
-            
-            // Load analytics
             await loadAnalytics();
-            
-            // Load billing
             await loadBilling();
-            
-            // Load settings
             loadSettings();
             
-            // Show admin panel if admin
             if (currentUserData.is_admin) {
                 document.getElementById('adminNavItem').style.display = 'block';
                 await loadAdminPanel();
             }
 
-            // Update Instagram status
             if (currentUserData.instagram_connected) {
                 document.getElementById('instaStatus').textContent = 'Connected';
                 document.getElementById('instaStatus').style.color = 'var(--success)';
@@ -2112,13 +2111,11 @@
 
         // ============================================
         // STATS LOADING
-        // API: GET /rest/v1/contacts, /rest/v1/automations, /rest/v1/messages
         // ============================================
         async function loadStats() {
             document.getElementById('totalContacts').textContent = currentUserData.contacts_count || 0;
             document.getElementById('totalAutomations').textContent = currentUserData.automations_count || 0;
             
-            // API: GET /rest/v1/messages?user_id=eq.{id}&select=count
             const { count: messagesCount } = await supabase
                 .from('messages')
                 .select('*', { count: 'exact', head: true })
@@ -2126,7 +2123,6 @@
             
             document.getElementById('messagesSent').textContent = messagesCount || 0;
             
-            // Calculate today's triggers
             const today = new Date().toISOString().split('T')[0];
             const { count: todayCount } = await supabase
                 .from('messages')
@@ -2138,12 +2134,10 @@
         }
 
         // ============================================
-        // AUTOMATIONS MANAGEMENT
-        // API: GET /rest/v1/automations, POST /rest/v1/automations
+        // AUTOMATIONS
         // ============================================
         async function loadAutomations() {
             try {
-                // API: GET /rest/v1/automations?user_id=eq.{id}
                 const { data: automations, error } = await supabase
                     .from('automations')
                     .select('*')
@@ -2183,7 +2177,6 @@
                     `).join('');
                 }
 
-                // Update counter
                 const limit = userPlan.automationsLimit === -1 ? '∞' : userPlan.automationsLimit;
                 document.getElementById('automationCount').textContent = `${automations.length} / ${limit}`;
             } catch (error) {
@@ -2194,7 +2187,6 @@
         async function createAutomation(e) {
             e.preventDefault();
             
-            // Check limits
             if (userPlan.automationsLimit !== -1 && currentUserData.automations_count >= userPlan.automationsLimit) {
                 showToast('Automation limit reached. Please upgrade your plan.', 'warning');
                 closeModal('createAutomationModal');
@@ -2209,7 +2201,6 @@
                 const keywords = document.getElementById('automationKeywords').value.split(',').map(k => k.trim()).filter(k => k);
                 const response = document.getElementById('automationResponse').value;
 
-                // API: POST /rest/v1/automations
                 const { data, error } = await supabase
                     .from('automations')
                     .insert([{
@@ -2226,8 +2217,6 @@
 
                 if (error) throw error;
 
-                // Update user automation count
-                // API: PATCH /rest/v1/users?id=eq.{id}
                 await supabase
                     .from('users')
                     .update({ automations_count: currentUserData.automations_count + 1 })
@@ -2248,7 +2237,6 @@
 
         async function toggleAutomation(id, isActive) {
             try {
-                // API: PATCH /rest/v1/automations?id=eq.{id}
                 const { error } = await supabase
                     .from('automations')
                     .update({ is_active: isActive })
@@ -2267,7 +2255,6 @@
 
             showLoading();
             try {
-                // API: DELETE /rest/v1/automations?id=eq.{id}
                 const { error } = await supabase
                     .from('automations')
                     .delete()
@@ -2275,7 +2262,6 @@
 
                 if (error) throw error;
 
-                // Update count
                 await supabase
                     .from('users')
                     .update({ automations_count: currentUserData.automations_count - 1 })
@@ -2293,12 +2279,10 @@
         }
 
         // ============================================
-        // CONTACTS MANAGEMENT
-        // API: GET /rest/v1/contacts, POST /rest/v1/contacts
+        // CONTACTS
         // ============================================
         async function loadContacts() {
             try {
-                // API: GET /rest/v1/contacts?user_id=eq.{id}
                 const { data: contacts, error } = await supabase
                     .from('contacts')
                     .select('*')
@@ -2334,7 +2318,6 @@
                     `).join('');
                 }
 
-                // Update counter
                 const limit = userPlan.contactsLimit === -1 ? '∞' : userPlan.contactsLimit;
                 document.getElementById('contactCount').textContent = `${contacts.length} / ${limit}`;
             } catch (error) {
@@ -2345,7 +2328,6 @@
         async function addContact(e) {
             e.preventDefault();
             
-            // Check limits
             if (userPlan.contactsLimit !== -1 && currentUserData.contacts_count >= userPlan.contactsLimit) {
                 showToast('Contact limit reached. Please upgrade your plan.', 'warning');
                 closeModal('addContactModal');
@@ -2358,13 +2340,12 @@
                 const username = document.getElementById('contactUsername').value.replace('@', '');
                 const tags = document.getElementById('contactTags').value.split(',').map(t => t.trim()).filter(t => t);
 
-                // API: POST /rest/v1/contacts
                 const { data, error } = await supabase
                     .from('contacts')
                     .insert([{
                         user_id: currentUser.id,
                         username: username,
-                        instagram_id: username, // In real app, fetch from Instagram API
+                        instagram_id: username,
                         tags: tags,
                         profile_pic: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}`
                     }])
@@ -2373,7 +2354,6 @@
 
                 if (error) throw error;
 
-                // Update count
                 await supabase
                     .from('users')
                     .update({ contacts_count: currentUserData.contacts_count + 1 })
@@ -2397,7 +2377,6 @@
 
             showLoading();
             try {
-                // API: DELETE /rest/v1/contacts?id=eq.{id}
                 const { error } = await supabase
                     .from('contacts')
                     .delete()
@@ -2405,7 +2384,6 @@
 
                 if (error) throw error;
 
-                // Update count
                 await supabase
                     .from('users')
                     .update({ contacts_count: currentUserData.contacts_count - 1 })
@@ -2424,11 +2402,9 @@
 
         // ============================================
         // MESSAGES / INBOX
-        // API: GET /rest/v1/messages
         // ============================================
         async function loadMessages() {
             try {
-                // API: GET /rest/v1/messages?user_id=eq.{id}
                 const { data: messages, error } = await supabase
                     .from('messages')
                     .select(`
@@ -2475,7 +2451,6 @@
         // ============================================
         async function loadAnalytics() {
             try {
-                // API: GET /rest/v1/automations?user_id=eq.{id}
                 const { data: automations } = await supabase
                     .from('automations')
                     .select('stats')
@@ -2495,7 +2470,6 @@
                 const rate = totalTriggered > 0 ? ((totalReplied / totalTriggered) * 100).toFixed(1) : 0;
                 document.getElementById('analyticsRate').textContent = rate + '%';
                 
-                // Mock engagement rate
                 document.getElementById('analyticsEngagement').textContent = '75%';
             } catch (error) {
                 showToast('Failed to load analytics: ' + error.message, 'error');
@@ -2503,11 +2477,9 @@
         }
 
         // ============================================
-        // BILLING & SUBSCRIPTIONS
-        // API: GET /rest/v1/subscriptions, POST /rest/v1/subscriptions
+        // BILLING
         // ============================================
         async function loadBilling() {
-            // Update current plan display
             const planNames = { free: 'Free Plan', pro: 'Pro Plan', master: 'Master Plan' };
             const planPrices = { free: '₹0', pro: '₹199', master: '₹499' };
             
@@ -2521,8 +2493,6 @@
                 document.getElementById('planExpiry').textContent = 'No expiry';
             }
 
-            // Load payment history
-            // API: GET /rest/v1/subscriptions?user_id=eq.{id}
             const { data: subscriptions } = await supabase
                 .from('subscriptions')
                 .select('*')
@@ -2562,10 +2532,8 @@
             document.getElementById('paymentAmount').textContent = '₹' + amount;
             document.getElementById('displayUpiId').textContent = UPI_ID;
             
-            // Generate UPI payment link
             const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&tn=${encodeURIComponent('InstaBot Pro ' + plan + ' subscription')}&cu=INR`;
             
-            // Mobile payment button
             document.getElementById('mobilePayButton').onclick = function() {
                 window.location.href = upiUrl;
             };
@@ -2583,11 +2551,9 @@
 
             showLoading();
             try {
-                // Calculate expiry date (30 days from now)
                 const expiryDate = new Date();
                 expiryDate.setDate(expiryDate.getDate() + 30);
 
-                // API: POST /rest/v1/subscriptions
                 const { data: subscription, error: subError } = await supabase
                     .from('subscriptions')
                     .insert([{
@@ -2595,7 +2561,7 @@
                         plan_type: currentUpgradePlan,
                         amount: currentUpgradeAmount,
                         transaction_id: txnId,
-                        payment_status: 'pending', // Admin will verify
+                        payment_status: 'pending',
                         payment_method: 'phonepe',
                         expires_at: expiryDate.toISOString()
                     }])
@@ -2604,8 +2570,6 @@
 
                 if (subError) throw subError;
 
-                // Update user plan (in real app, admin should verify first)
-                // API: PATCH /rest/v1/users?id=eq.{id}
                 const { error: updateError } = await supabase
                     .from('users')
                     .update({
@@ -2644,7 +2608,6 @@
             try {
                 const newName = document.getElementById('settingsName').value;
 
-                // API: PATCH /rest/v1/users?id=eq.{id}
                 const { error } = await supabase
                     .from('users')
                     .update({ name: newName })
@@ -2664,12 +2627,9 @@
 
         // ============================================
         // ADMIN PANEL
-        // API: GET /rest/v1/users (admin only), GET /rest/v1/plans
         // ============================================
         async function loadAdminPanel() {
             try {
-                // Load platform stats
-                // API: GET /rest/v1/users
                 const { data: allUsers } = await supabase
                     .from('users')
                     .select('*');
@@ -2682,8 +2642,6 @@
                 document.getElementById('adminProUsers').textContent = proUsers;
                 document.getElementById('adminMasterUsers').textContent = masterUsers;
 
-                // Calculate revenue from subscriptions
-                // API: GET /rest/v1/subscriptions
                 const { data: allSubs } = await supabase
                     .from('subscriptions')
                     .select('amount')
@@ -2692,8 +2650,6 @@
                 const totalRevenue = allSubs?.reduce((sum, sub) => sum + sub.amount, 0) || 0;
                 document.getElementById('adminTotalRevenue').textContent = '₹' + totalRevenue;
 
-                // Load plans table
-                // API: GET /rest/v1/plans
                 const { data: plans } = await supabase
                     .from('plans')
                     .select('*')
@@ -2721,7 +2677,6 @@
                     `).join('');
                 }
 
-                // Load users table
                 const usersBody = document.getElementById('adminUsersBody');
                 if (allUsers) {
                     usersBody.innerHTML = allUsers.map(user => `
@@ -2756,7 +2711,6 @@
             if (!planName) return;
 
             try {
-                // API: GET /rest/v1/plans?name=eq.{planName}
                 const { data: plan } = await supabase
                     .from('plans')
                     .select('*')
@@ -2785,7 +2739,6 @@
                 const automations = parseInt(document.getElementById('editPlanAutomations').value);
                 const team = parseInt(document.getElementById('editPlanTeam').value);
 
-                // API: PATCH /rest/v1/plans?name=eq.{planName}
                 const { error } = await supabase
                     .from('plans')
                     .update({
@@ -2822,7 +2775,6 @@
                 const planType = document.getElementById('changeUserPlanType').value;
                 const expiry = document.getElementById('changeUserPlanExpiry').value;
 
-                // API: PATCH /rest/v1/users?id=eq.{userId}
                 const { error } = await supabase
                     .from('users')
                     .update({
@@ -2843,18 +2795,16 @@
         }
 
         // ============================================
-        // INSTAGRAM CONNECTION (Placeholder)
+        // INSTAGRAM CONNECTION
         // ============================================
         function connectInstagram() {
             showToast('Instagram connection will open OAuth flow. This is a demo.', 'warning');
-            // In real app: window.location.href = 'https://api.instagram.com/oauth/authorize?...'
         }
 
         // ============================================
-        // UI HELPER FUNCTIONS
+        // UI HELPERS
         // ============================================
         function showPage(pageName) {
-            // Update active nav link
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
                 if (link.dataset.page === pageName) {
@@ -2862,7 +2812,6 @@
                 }
             });
 
-            // Update page title
             const titles = {
                 overview: 'Dashboard',
                 automations: 'Automations',
@@ -2875,13 +2824,11 @@
             };
             document.getElementById('pageTitle').textContent = titles[pageName] || 'Dashboard';
 
-            // Show correct section
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(pageName + 'Section').classList.add('active');
 
-            // Close mobile sidebar
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('active');
             }
@@ -2934,7 +2881,6 @@
         // EVENT LISTENERS
         // ============================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Navigation links
             document.querySelectorAll('.nav-link[data-page]').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -2942,7 +2888,6 @@
                 });
             });
 
-            // Close modal on background click
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
@@ -2950,12 +2895,10 @@
                     }
                 });
             });
-        });
 
-        // ============================================
-        // INITIALIZE APP
-        // ============================================
-        showLoading();
+            // Check authentication on load
+            checkAuth();
+        });
     </script>
 </body>
 </html>
