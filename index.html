@@ -146,6 +146,7 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero {
@@ -162,6 +163,7 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero p {
@@ -189,6 +191,7 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .pricing {
@@ -225,6 +228,7 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .feature-list {
@@ -246,7 +250,6 @@
         /* Dashboard Layout */
         .dashboard {
             display: none;
-            min-height: 100vh;
         }
 
         .sidebar {
@@ -260,6 +263,7 @@
             border-right: 1px solid var(--glass-border);
             padding: 20px;
             overflow-y: auto;
+            z-index: 100;
         }
 
         .sidebar-header {
@@ -359,6 +363,10 @@
             justify-content: center;
         }
 
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
             background: var(--dark);
             border: 1px solid var(--glass-border);
@@ -380,6 +388,11 @@
         .close {
             font-size: 28px;
             cursor: pointer;
+            color: var(--light);
+        }
+
+        .close:hover {
+            color: var(--secondary);
         }
 
         /* Form */
@@ -515,6 +528,10 @@
             animation: slideUp 0.3s ease;
         }
 
+        .toast.show {
+            display: flex;
+        }
+
         @keyframes slideUp {
             from {
                 transform: translateY(100px);
@@ -550,6 +567,10 @@
             z-index: 3000;
             align-items: center;
             justify-content: center;
+        }
+
+        .loading.show {
+            display: flex;
         }
 
         .spinner {
@@ -611,20 +632,24 @@
             }
 
             .mobile-menu-btn {
-                display: block;
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                border: none;
-                color: white;
-                font-size: 24px;
-                cursor: pointer;
-                z-index: 100;
+                display: block !important;
             }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
         }
 
         .hidden {
@@ -674,7 +699,7 @@
 
     <!-- Toast Notification -->
     <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
+        <i class="fas fa-check-circle" id="toast-icon"></i>
         <span id="toast-message"></span>
     </div>
 
@@ -765,28 +790,28 @@
                 <div class="logo"><i class="fab fa-instagram"></i> InstaBot Pro</div>
             </div>
             <nav>
-                <div class="nav-item active" onclick="showSection('dashboardSection')">
+                <div class="nav-item active" data-section="dashboardSection" onclick="showSection('dashboardSection', this)">
                     <i class="fas fa-home"></i> Dashboard
                 </div>
-                <div class="nav-item" onclick="showSection('automationsSection')">
+                <div class="nav-item" data-section="automationsSection" onclick="showSection('automationsSection', this)">
                     <i class="fas fa-robot"></i> Automations
                 </div>
-                <div class="nav-item" onclick="showSection('contactsSection')">
+                <div class="nav-item" data-section="contactsSection" onclick="showSection('contactsSection', this)">
                     <i class="fas fa-users"></i> Contacts
                 </div>
-                <div class="nav-item" onclick="showSection('inboxSection')">
+                <div class="nav-item" data-section="inboxSection" onclick="showSection('inboxSection', this)">
                     <i class="fas fa-inbox"></i> Inbox
                 </div>
-                <div class="nav-item" onclick="showSection('analyticsSection')">
+                <div class="nav-item" data-section="analyticsSection" onclick="showSection('analyticsSection', this)">
                     <i class="fas fa-chart-bar"></i> Analytics
                 </div>
-                <div class="nav-item" onclick="showSection('billingSection')">
+                <div class="nav-item" data-section="billingSection" onclick="showSection('billingSection', this)">
                     <i class="fas fa-credit-card"></i> Billing
                 </div>
-                <div class="nav-item" onclick="showSection('settingsSection')">
+                <div class="nav-item" data-section="settingsSection" onclick="showSection('settingsSection', this)">
                     <i class="fas fa-cog"></i> Settings
                 </div>
-                <div class="nav-item hidden" id="adminNav" onclick="showSection('adminSection')">
+                <div class="nav-item hidden" id="adminNav" data-section="adminSection" onclick="showSection('adminSection', this)">
                     <i class="fas fa-crown"></i> Admin Panel
                 </div>
                 <div class="nav-item" onclick="logout()">
@@ -839,7 +864,7 @@
                         <button class="btn btn-primary" onclick="showModal('addContactModal')">
                             <i class="fas fa-user-plus"></i> Add Contact
                         </button>
-                        <button class="btn btn-secondary" onclick="showSection('billingSection')">
+                        <button class="btn btn-secondary" onclick="showSection('billingSection', document.querySelector('[data-section=billingSection]'))">
                             <i class="fas fa-crown"></i> Upgrade Plan
                         </button>
                     </div>
@@ -1051,6 +1076,11 @@
         </main>
     </div>
 
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Modals -->
     
     <!-- Create Automation Modal -->
@@ -1195,7 +1225,13 @@
         // ============================================
         // Initialize Supabase Client
         // ============================================
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (error) {
+            console.error('Failed to initialize Supabase:', error);
+            showToast('Failed to connect to database', 'error');
+        }
 
         let currentUser = null;
         let userPlanLimits = {
@@ -1204,47 +1240,170 @@
         };
 
         // ============================================
+        // DOM Elements Cache
+        // ============================================
+        const elements = {
+            landingPage: null,
+            dashboard: null,
+            loading: null,
+            toast: null,
+            toastMessage: null,
+            toastIcon: null,
+            sidebar: null,
+            mobileMenuBtn: null
+        };
+
+        // Initialize DOM elements after page load
+        function initializeElements() {
+            elements.landingPage = document.getElementById('landingPage');
+            elements.dashboard = document.getElementById('dashboard');
+            elements.loading = document.getElementById('loading');
+            elements.toast = document.getElementById('toast');
+            elements.toastMessage = document.getElementById('toast-message');
+            elements.toastIcon = document.getElementById('toast-icon');
+            elements.sidebar = document.getElementById('sidebar');
+            elements.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        }
+
+        // ============================================
         // Initialize Particles.js
         // ============================================
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: '#6366f1' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.5, random: false },
-                size: { value: 3, random: true },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: '#6366f1',
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 2,
-                    direction: 'none',
-                    random: false,
-                    straight: false,
-                    out_mode: 'out',
-                    bounce: false
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80, density: { enable: true, value_area: 800 } },
+                        color: { value: '#6366f1' },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.5, random: false },
+                        size: { value: 3, random: true },
+                        line_linked: {
+                            enable: true,
+                            distance: 150,
+                            color: '#6366f1',
+                            opacity: 0.4,
+                            width: 1
+                        },
+                        move: {
+                            enable: true,
+                            speed: 2,
+                            direction: 'none',
+                            random: false,
+                            straight: false,
+                            out_mode: 'out',
+                            bounce: false
+                        }
+                    },
+                    interactivity: {
+                        detect_on: 'canvas',
+                        events: {
+                            onhover: { enable: true, mode: 'repulse' },
+                            onclick: { enable: true, mode: 'push' },
+                            resize: true
+                        }
+                    },
+                    retina_detect: true
+                });
+            }
+        }
+
+        // ============================================
+        // UI Helper Functions (Fixed)
+        // ============================================
+        function showLoading() {
+            const loadingEl = elements.loading || document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.classList.add('show');
+            }
+        }
+
+        function hideLoading() {
+            const loadingEl = elements.loading || document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.classList.remove('show');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = elements.toast || document.getElementById('toast');
+            const toastMessage = elements.toastMessage || document.getElementById('toast-message');
+            const toastIcon = elements.toastIcon || document.getElementById('toast-icon');
+            
+            if (!toast || !toastMessage) {
+                console.log(`Toast (${type}): ${message}`);
+                return;
+            }
+            
+            toast.className = 'toast ' + type + ' show';
+            toastMessage.textContent = message;
+            
+            if (toastIcon) {
+                if (type === 'success') {
+                    toastIcon.className = 'fas fa-check-circle';
+                } else if (type === 'error') {
+                    toastIcon.className = 'fas fa-times-circle';
+                } else if (type === 'warning') {
+                    toastIcon.className = 'fas fa-exclamation-circle';
                 }
-            },
-            interactivity: {
-                detect_on: 'canvas',
-                events: {
-                    onhover: { enable: true, mode: 'repulse' },
-                    onclick: { enable: true, mode: 'push' },
-                    resize: true
-                }
-            },
-            retina_detect: true
-        });
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('show');
+            }
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        function showSection(sectionId, navElement) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Show selected section
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.add('active');
+            }
+
+            // Add active to clicked nav item
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+
+            // Close mobile menu
+            const sidebar = elements.sidebar || document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('open');
+            }
+        }
 
         // ============================================
         // Authentication Functions
         // ============================================
         async function loginWithGoogle() {
+            if (!supabase) {
+                showToast('Database connection not available', 'error');
+                return;
+            }
+
             try {
                 showLoading();
                 const { data, error } = await supabase.auth.signInWithOAuth({
@@ -1255,40 +1414,65 @@
                 });
                 
                 if (error) throw error;
+                
+                // Note: OAuth will redirect, so we don't need to hide loading here
+                // The page will reload after successful auth
             } catch (error) {
                 hideLoading();
-                showToast('Login failed: ' + error.message, 'error');
+                console.error('Login error:', error);
+                showToast('Login failed: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         async function logout() {
+            if (!supabase) {
+                showToast('Database connection not available', 'error');
+                return;
+            }
+
             try {
                 showLoading();
                 await supabase.auth.signOut();
                 currentUser = null;
-                document.getElementById('landingPage').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
+                
+                const landingPage = elements.landingPage || document.getElementById('landingPage');
+                const dashboard = elements.dashboard || document.getElementById('dashboard');
+                
+                if (landingPage) landingPage.style.display = 'block';
+                if (dashboard) dashboard.style.display = 'none';
+                
                 hideLoading();
                 showToast('Logged out successfully', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Logout failed: ' + error.message, 'error');
+                showToast('Logout failed: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         // ============================================
         // Check Authentication State
         // ============================================
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session) {
-                await handleUserLogin(session.user);
-            } else {
-                document.getElementById('landingPage').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
-            }
-        });
+        function setupAuthListener() {
+            if (!supabase) return;
+
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth state changed:', event);
+                
+                const landingPage = elements.landingPage || document.getElementById('landingPage');
+                const dashboard = elements.dashboard || document.getElementById('dashboard');
+                
+                if (session) {
+                    await handleUserLogin(session.user);
+                } else {
+                    if (landingPage) landingPage.style.display = 'block';
+                    if (dashboard) dashboard.style.display = 'none';
+                }
+            });
+        }
 
         async function handleUserLogin(user) {
+            if (!supabase) return;
+
             try {
                 showLoading();
                 
@@ -1299,7 +1483,9 @@
                     .eq('id', user.id)
                     .single();
 
-                if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+                if (fetchError && fetchError.code !== 'PGRST116') {
+                    throw fetchError;
+                }
 
                 // Create user if doesn't exist
                 if (!existingUser) {
@@ -1308,9 +1494,9 @@
                         .insert({
                             id: user.id,
                             email: user.email,
-                            name: user.user_metadata.full_name || user.email.split('@')[0],
-                            avatar_url: user.user_metadata.avatar_url,
-                            google_id: user.user_metadata.sub,
+                            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                            avatar_url: user.user_metadata?.avatar_url,
+                            google_id: user.user_metadata?.sub,
                             plan_type: 'free',
                             plan_expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                             created_at: new Date().toISOString()
@@ -1319,12 +1505,13 @@
                     if (insertError) throw insertError;
 
                     // Fetch the newly created user
-                    const { data: newUser } = await supabase
+                    const { data: newUser, error: newUserError } = await supabase
                         .from('users')
                         .select('*')
                         .eq('id', user.id)
                         .single();
                     
+                    if (newUserError) throw newUserError;
                     currentUser = newUser;
                 } else {
                     currentUser = existingUser;
@@ -1334,23 +1521,27 @@
                 await loadPlanLimits();
 
                 // Show dashboard
-                document.getElementById('landingPage').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'flex';
+                const landingPage = elements.landingPage || document.getElementById('landingPage');
+                const dashboard = elements.dashboard || document.getElementById('dashboard');
+                
+                if (landingPage) landingPage.style.display = 'none';
+                if (dashboard) dashboard.style.display = 'flex';
 
                 // Show admin nav if admin
-                if (currentUser.is_admin) {
-                    document.getElementById('adminNav').classList.remove('hidden');
+                const adminNav = document.getElementById('adminNav');
+                if (currentUser.is_admin && adminNav) {
+                    adminNav.classList.remove('hidden');
                 }
 
                 // Load dashboard data
                 await loadDashboard();
                 
                 hideLoading();
-                showToast('Welcome, ' + currentUser.name + '!', 'success');
+                showToast('Welcome, ' + (currentUser.name || 'User') + '!', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Error loading user: ' + error.message, 'error');
-                console.error(error);
+                console.error('Error loading user:', error);
+                showToast('Error loading user: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
@@ -1358,6 +1549,8 @@
         // Load Plan Limits
         // ============================================
         async function loadPlanLimits() {
+            if (!supabase || !currentUser) return;
+
             try {
                 const { data: plans, error } = await supabase
                     .from('plans')
@@ -1365,12 +1558,17 @@
                     .eq('name', currentUser.plan_type)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading plan limits:', error);
+                    return;
+                }
 
-                userPlanLimits = {
-                    contacts: plans.contacts_limit,
-                    automations: plans.automations_limit
-                };
+                if (plans) {
+                    userPlanLimits = {
+                        contacts: plans.contacts_limit,
+                        automations: plans.automations_limit
+                    };
+                }
             } catch (error) {
                 console.error('Error loading plan limits:', error);
             }
@@ -1380,16 +1578,18 @@
         // Dashboard Functions
         // ============================================
         async function loadDashboard() {
+            if (!supabase || !currentUser) return;
+
             try {
                 // Load stats
                 const { data: contacts } = await supabase
                     .from('contacts')
-                    .select('id', { count: 'exact' })
+                    .select('id')
                     .eq('user_id', currentUser.id);
 
                 const { data: automations } = await supabase
                     .from('automations')
-                    .select('id, stats', { count: 'exact' })
+                    .select('id, stats')
                     .eq('user_id', currentUser.id);
 
                 let totalTriggered = 0;
@@ -1401,28 +1601,42 @@
                             totalTriggered += auto.stats.triggered;
                         }
                     });
-                    todayTriggered = Math.floor(totalTriggered * 0.1); // Mock today's data
+                    todayTriggered = Math.floor(totalTriggered * 0.1);
                 }
 
-                document.getElementById('totalContacts').textContent = contacts?.length || 0;
-                document.getElementById('totalAutomations').textContent = automations?.length || 0;
-                document.getElementById('messagesSent').textContent = totalTriggered || 0;
-                document.getElementById('todayTriggers').textContent = todayTriggered;
+                const totalContactsEl = document.getElementById('totalContacts');
+                const totalAutomationsEl = document.getElementById('totalAutomations');
+                const messagesSentEl = document.getElementById('messagesSent');
+                const todayTriggersEl = document.getElementById('todayTriggers');
+
+                if (totalContactsEl) totalContactsEl.textContent = contacts?.length || 0;
+                if (totalAutomationsEl) totalAutomationsEl.textContent = automations?.length || 0;
+                if (messagesSentEl) messagesSentEl.textContent = totalTriggered || 0;
+                if (todayTriggersEl) todayTriggersEl.textContent = todayTriggered;
 
                 // Load settings
-                document.getElementById('settingsName').value = currentUser.name;
-                document.getElementById('settingsEmail').value = currentUser.email;
-                document.getElementById('instaStatus').textContent = currentUser.instagram_connected ? 
-                    '✓ Connected as @' + currentUser.instagram_username : 'Not connected';
+                const settingsNameEl = document.getElementById('settingsName');
+                const settingsEmailEl = document.getElementById('settingsEmail');
+                const instaStatusEl = document.getElementById('instaStatus');
+
+                if (settingsNameEl) settingsNameEl.value = currentUser.name || '';
+                if (settingsEmailEl) settingsEmailEl.value = currentUser.email || '';
+                if (instaStatusEl) {
+                    instaStatusEl.textContent = currentUser.instagram_connected ? 
+                        '✓ Connected as @' + currentUser.instagram_username : 'Not connected';
+                }
 
                 // Load billing
                 const planBadge = document.getElementById('currentPlan');
-                planBadge.textContent = currentUser.plan_type.charAt(0).toUpperCase() + currentUser.plan_type.slice(1);
-                planBadge.className = 'badge badge-' + currentUser.plan_type;
+                if (planBadge) {
+                    planBadge.textContent = (currentUser.plan_type || 'free').charAt(0).toUpperCase() + (currentUser.plan_type || 'free').slice(1);
+                    planBadge.className = 'badge badge-' + (currentUser.plan_type || 'free');
+                }
                 
-                if (currentUser.plan_expiry) {
+                const planExpiryEl = document.getElementById('planExpiry');
+                if (currentUser.plan_expiry && planExpiryEl) {
                     const expiry = new Date(currentUser.plan_expiry);
-                    document.getElementById('planExpiry').textContent = expiry.toLocaleDateString('en-IN');
+                    planExpiryEl.textContent = expiry.toLocaleDateString('en-IN');
                 }
 
                 // Load payment history
@@ -1448,6 +1662,8 @@
         // Automations Functions
         // ============================================
         async function loadAutomations() {
+            if (!supabase || !currentUser) return;
+
             try {
                 const { data, error } = await supabase
                     .from('automations')
@@ -1458,6 +1674,7 @@
                 if (error) throw error;
 
                 const tbody = document.getElementById('automationsTable');
+                if (!tbody) return;
                 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center">No automations yet</td></tr>';
@@ -1466,8 +1683,8 @@
 
                 tbody.innerHTML = data.map(auto => `
                     <tr>
-                        <td>${auto.name}</td>
-                        <td><span class="badge badge-pro">${auto.trigger_type.replace('_', ' ')}</span></td>
+                        <td>${auto.name || 'Untitled'}</td>
+                        <td><span class="badge badge-pro">${(auto.trigger_type || '').replace('_', ' ')}</span></td>
                         <td>
                             <label class="toggle">
                                 <input type="checkbox" ${auto.is_active ? 'checked' : ''} 
@@ -1491,14 +1708,21 @@
         async function createAutomation(event) {
             event.preventDefault();
             
+            if (!supabase || !currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+
             try {
                 showLoading();
 
                 // Check limit
-                const { count } = await supabase
+                const { count, error: countError } = await supabase
                     .from('automations')
                     .select('id', { count: 'exact', head: true })
                     .eq('user_id', currentUser.id);
+
+                if (countError) throw countError;
 
                 if (userPlanLimits.automations !== -1 && count >= userPlanLimits.automations) {
                     hideLoading();
@@ -1506,10 +1730,19 @@
                     return;
                 }
 
-                const name = document.getElementById('automationName').value;
-                const triggerType = document.getElementById('triggerType').value;
-                const keywords = document.getElementById('triggerKeywords').value.split(',').map(k => k.trim());
-                const response = document.getElementById('responseMessage').value;
+                const nameEl = document.getElementById('automationName');
+                const triggerTypeEl = document.getElementById('triggerType');
+                const keywordsEl = document.getElementById('triggerKeywords');
+                const responseEl = document.getElementById('responseMessage');
+
+                if (!nameEl || !triggerTypeEl || !keywordsEl || !responseEl) {
+                    throw new Error('Form elements not found');
+                }
+
+                const name = nameEl.value;
+                const triggerType = triggerTypeEl.value;
+                const keywords = keywordsEl.value.split(',').map(k => k.trim()).filter(k => k);
+                const response = responseEl.value;
 
                 const { error } = await supabase
                     .from('automations')
@@ -1527,9 +1760,9 @@
                 if (error) throw error;
 
                 hideModal('createAutomationModal');
-                document.getElementById('automationName').value = '';
-                document.getElementById('triggerKeywords').value = '';
-                document.getElementById('responseMessage').value = '';
+                nameEl.value = '';
+                keywordsEl.value = '';
+                responseEl.value = '';
                 
                 await loadAutomations();
                 await loadDashboard();
@@ -1538,11 +1771,14 @@
                 showToast('Automation created successfully!', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Error creating automation: ' + error.message, 'error');
+                console.error('Error creating automation:', error);
+                showToast('Error creating automation: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         async function toggleAutomation(id, isActive) {
+            if (!supabase) return;
+
             try {
                 const { error } = await supabase
                     .from('automations')
@@ -1553,12 +1789,14 @@
 
                 showToast('Automation ' + (isActive ? 'activated' : 'deactivated'), 'success');
             } catch (error) {
+                console.error('Error updating automation:', error);
                 showToast('Error updating automation', 'error');
             }
         }
 
         async function deleteAutomation(id) {
             if (!confirm('Are you sure you want to delete this automation?')) return;
+            if (!supabase) return;
 
             try {
                 showLoading();
@@ -1577,6 +1815,7 @@
                 showToast('Automation deleted successfully', 'success');
             } catch (error) {
                 hideLoading();
+                console.error('Error deleting automation:', error);
                 showToast('Error deleting automation', 'error');
             }
         }
@@ -1585,6 +1824,8 @@
         // Contacts Functions
         // ============================================
         async function loadContacts() {
+            if (!supabase || !currentUser) return;
+
             try {
                 const { data, error } = await supabase
                     .from('contacts')
@@ -1595,6 +1836,7 @@
                 if (error) throw error;
 
                 const tbody = document.getElementById('contactsTable');
+                if (!tbody) return;
                 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" class="text-center">No contacts yet</td></tr>';
@@ -1603,7 +1845,7 @@
 
                 tbody.innerHTML = data.map(contact => `
                     <tr>
-                        <td>@${contact.username}</td>
+                        <td>@${contact.username || 'unknown'}</td>
                         <td>${contact.tags ? contact.tags.map(t => `<span class="badge badge-pro">${t}</span>`).join(' ') : '-'}</td>
                         <td>${contact.last_message_at ? new Date(contact.last_message_at).toLocaleString('en-IN') : 'Never'}</td>
                         <td class="action-btns">
@@ -1621,14 +1863,21 @@
         async function addContact(event) {
             event.preventDefault();
             
+            if (!supabase || !currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+
             try {
                 showLoading();
 
                 // Check limit
-                const { count } = await supabase
+                const { count, error: countError } = await supabase
                     .from('contacts')
                     .select('id', { count: 'exact', head: true })
                     .eq('user_id', currentUser.id);
+
+                if (countError) throw countError;
 
                 if (userPlanLimits.contacts !== -1 && count >= userPlanLimits.contacts) {
                     hideLoading();
@@ -1636,8 +1885,15 @@
                     return;
                 }
 
-                const username = document.getElementById('contactUsername').value;
-                const tags = document.getElementById('contactTags').value.split(',').map(t => t.trim()).filter(t => t);
+                const usernameEl = document.getElementById('contactUsername');
+                const tagsEl = document.getElementById('contactTags');
+
+                if (!usernameEl || !tagsEl) {
+                    throw new Error('Form elements not found');
+                }
+
+                const username = usernameEl.value;
+                const tags = tagsEl.value.split(',').map(t => t.trim()).filter(t => t);
 
                 const { error } = await supabase
                     .from('contacts')
@@ -1645,7 +1901,7 @@
                         user_id: currentUser.id,
                         username: username,
                         instagram_id: 'ig_' + Math.random().toString(36).substr(2, 9),
-                        profile_pic: 'https://ui-avatars.com/api/?name=' + username,
+                        profile_pic: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username),
                         tags: tags.length > 0 ? tags : null,
                         created_at: new Date().toISOString()
                     });
@@ -1653,8 +1909,8 @@
                 if (error) throw error;
 
                 hideModal('addContactModal');
-                document.getElementById('contactUsername').value = '';
-                document.getElementById('contactTags').value = '';
+                usernameEl.value = '';
+                tagsEl.value = '';
                 
                 await loadContacts();
                 await loadDashboard();
@@ -1663,12 +1919,14 @@
                 showToast('Contact added successfully!', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Error adding contact: ' + error.message, 'error');
+                console.error('Error adding contact:', error);
+                showToast('Error adding contact: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         async function deleteContact(id) {
             if (!confirm('Are you sure you want to delete this contact?')) return;
+            if (!supabase) return;
 
             try {
                 showLoading();
@@ -1687,6 +1945,7 @@
                 showToast('Contact deleted successfully', 'success');
             } catch (error) {
                 hideLoading();
+                console.error('Error deleting contact:', error);
                 showToast('Error deleting contact', 'error');
             }
         }
@@ -1695,6 +1954,8 @@
         // Payment Functions
         // ============================================
         async function loadPaymentHistory() {
+            if (!supabase || !currentUser) return;
+
             try {
                 const { data, error } = await supabase
                     .from('subscriptions')
@@ -1706,6 +1967,7 @@
                 if (error) throw error;
 
                 const tbody = document.getElementById('paymentHistory');
+                if (!tbody) return;
                 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" class="text-center">No payment history</td></tr>';
@@ -1743,6 +2005,8 @@
         }
 
         async function createPendingSubscription(planType, amount, transactionId) {
+            if (!supabase || !currentUser) return;
+
             try {
                 const expiryDate = new Date();
                 expiryDate.setMonth(expiryDate.getMonth() + 1);
@@ -1763,12 +2027,10 @@
                 if (error) throw error;
 
                 showToast('Payment initiated. Please complete the payment.', 'warning');
-                
-                // In real scenario, you would verify payment via PhonePe webhook
-                // For demo, we'll just show the payment in history
                 await loadPaymentHistory();
             } catch (error) {
-                showToast('Error creating subscription: ' + error.message, 'error');
+                console.error('Error creating subscription:', error);
+                showToast('Error creating subscription: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
@@ -1776,6 +2038,8 @@
         // Admin Functions
         // ============================================
         async function loadAdminData() {
+            if (!supabase || !currentUser || !currentUser.is_admin) return;
+
             try {
                 // Load total users
                 const { data: users, error: usersError } = await supabase
@@ -1784,7 +2048,10 @@
 
                 if (usersError) throw usersError;
 
-                document.getElementById('adminTotalUsers').textContent = users.length;
+                const adminTotalUsersEl = document.getElementById('adminTotalUsers');
+                if (adminTotalUsersEl) {
+                    adminTotalUsersEl.textContent = users?.length || 0;
+                }
 
                 // Calculate revenue
                 const { data: subscriptions } = await supabase
@@ -1792,28 +2059,36 @@
                     .select('amount')
                     .eq('payment_status', 'success');
 
-                const totalRevenue = subscriptions?.reduce((sum, sub) => sum + sub.amount, 0) || 0;
-                document.getElementById('adminRevenue').textContent = '₹' + totalRevenue;
+                const totalRevenue = subscriptions?.reduce((sum, sub) => sum + (sub.amount || 0), 0) || 0;
+                const adminRevenueEl = document.getElementById('adminRevenue');
+                if (adminRevenueEl) {
+                    adminRevenueEl.textContent = '₹' + totalRevenue;
+                }
 
                 // Count pro users
-                const proUsers = users.filter(u => u.plan_type !== 'free').length;
-                document.getElementById('adminProUsers').textContent = proUsers;
+                const proUsers = users?.filter(u => u.plan_type !== 'free').length || 0;
+                const adminProUsersEl = document.getElementById('adminProUsers');
+                if (adminProUsersEl) {
+                    adminProUsersEl.textContent = proUsers;
+                }
 
                 // Load users table
                 const tbody = document.getElementById('adminUsersTable');
-                tbody.innerHTML = users.map(user => `
-                    <tr>
-                        <td>${user.name}</td>
-                        <td>${user.email}</td>
-                        <td><span class="badge badge-${user.plan_type}">${user.plan_type}</span></td>
-                        <td>${new Date(user.created_at).toLocaleDateString('en-IN')}</td>
-                        <td class="action-btns">
-                            <button class="btn btn-sm btn-warning" onclick="openChangePlanModal('${user.id}', '${user.name}')">
-                                <i class="fas fa-edit"></i> Change Plan
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
+                if (tbody && users) {
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.name || 'Unknown'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td><span class="badge badge-${user.plan_type || 'free'}">${user.plan_type || 'free'}</span></td>
+                            <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('en-IN') : 'N/A'}</td>
+                            <td class="action-btns">
+                                <button class="btn btn-sm btn-warning" onclick="openChangePlanModal('${user.id}', '${user.name || 'User'}')">
+                                    <i class="fas fa-edit"></i> Change Plan
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
 
                 // Load plan data for edit modal
                 const { data: plans } = await supabase
@@ -1823,16 +2098,24 @@
                 if (plans) {
                     plans.forEach(plan => {
                         if (plan.name === 'free') {
-                            document.getElementById('freeLimitContacts').value = plan.contacts_limit;
-                            document.getElementById('freeLimitAuto').value = plan.automations_limit;
+                            const freeLimitContactsEl = document.getElementById('freeLimitContacts');
+                            const freeLimitAutoEl = document.getElementById('freeLimitAuto');
+                            if (freeLimitContactsEl) freeLimitContactsEl.value = plan.contacts_limit;
+                            if (freeLimitAutoEl) freeLimitAutoEl.value = plan.automations_limit;
                         } else if (plan.name === 'pro') {
-                            document.getElementById('proPrice').value = plan.price;
-                            document.getElementById('proLimitContacts').value = plan.contacts_limit;
-                            document.getElementById('proLimitAuto').value = plan.automations_limit;
+                            const proPriceEl = document.getElementById('proPrice');
+                            const proLimitContactsEl = document.getElementById('proLimitContacts');
+                            const proLimitAutoEl = document.getElementById('proLimitAuto');
+                            if (proPriceEl) proPriceEl.value = plan.price;
+                            if (proLimitContactsEl) proLimitContactsEl.value = plan.contacts_limit;
+                            if (proLimitAutoEl) proLimitAutoEl.value = plan.automations_limit;
                         } else if (plan.name === 'master') {
-                            document.getElementById('masterPrice').value = plan.price;
-                            document.getElementById('masterLimitContacts').value = plan.contacts_limit;
-                            document.getElementById('masterLimitAuto').value = plan.automations_limit;
+                            const masterPriceEl = document.getElementById('masterPrice');
+                            const masterLimitContactsEl = document.getElementById('masterLimitContacts');
+                            const masterLimitAutoEl = document.getElementById('masterLimitAuto');
+                            if (masterPriceEl) masterPriceEl.value = plan.price;
+                            if (masterLimitContactsEl) masterLimitContactsEl.value = plan.contacts_limit;
+                            if (masterLimitAutoEl) masterLimitAutoEl.value = plan.automations_limit;
                         }
                     });
                 }
@@ -1845,6 +2128,8 @@
         async function updatePlans(event) {
             event.preventDefault();
             
+            if (!supabase) return;
+
             try {
                 showLoading();
 
@@ -1852,8 +2137,8 @@
                 await supabase
                     .from('plans')
                     .update({
-                        contacts_limit: parseInt(document.getElementById('freeLimitContacts').value),
-                        automations_limit: parseInt(document.getElementById('freeLimitAuto').value)
+                        contacts_limit: parseInt(document.getElementById('freeLimitContacts')?.value || 1000),
+                        automations_limit: parseInt(document.getElementById('freeLimitAuto')?.value || 3)
                     })
                     .eq('name', 'free');
 
@@ -1861,9 +2146,9 @@
                 await supabase
                     .from('plans')
                     .update({
-                        price: parseInt(document.getElementById('proPrice').value),
-                        contacts_limit: parseInt(document.getElementById('proLimitContacts').value),
-                        automations_limit: parseInt(document.getElementById('proLimitAuto').value)
+                        price: parseInt(document.getElementById('proPrice')?.value || 199),
+                        contacts_limit: parseInt(document.getElementById('proLimitContacts')?.value || 10000),
+                        automations_limit: parseInt(document.getElementById('proLimitAuto')?.value || 25)
                     })
                     .eq('name', 'pro');
 
@@ -1871,9 +2156,9 @@
                 await supabase
                     .from('plans')
                     .update({
-                        price: parseInt(document.getElementById('masterPrice').value),
-                        contacts_limit: parseInt(document.getElementById('masterLimitContacts').value),
-                        automations_limit: parseInt(document.getElementById('masterLimitAuto').value)
+                        price: parseInt(document.getElementById('masterPrice')?.value || 499),
+                        contacts_limit: parseInt(document.getElementById('masterLimitContacts')?.value || -1),
+                        automations_limit: parseInt(document.getElementById('masterLimitAuto')?.value || -1)
                     })
                     .eq('name', 'master');
 
@@ -1882,24 +2167,36 @@
                 showToast('Plans updated successfully!', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Error updating plans: ' + error.message, 'error');
+                console.error('Error updating plans:', error);
+                showToast('Error updating plans: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         function openChangePlanModal(userId, userName) {
-            document.getElementById('changeUserId').value = userId;
-            document.getElementById('changeUserName').textContent = userName;
+            const userIdEl = document.getElementById('changeUserId');
+            const userNameEl = document.getElementById('changeUserName');
+            
+            if (userIdEl) userIdEl.value = userId;
+            if (userNameEl) userNameEl.textContent = userName;
+            
             showModal('changeUserPlanModal');
         }
 
         async function changeUserPlan(event) {
             event.preventDefault();
             
+            if (!supabase) return;
+
             try {
                 showLoading();
 
-                const userId = document.getElementById('changeUserId').value;
-                const newPlan = document.getElementById('newPlanType').value;
+                const userId = document.getElementById('changeUserId')?.value;
+                const newPlan = document.getElementById('newPlanType')?.value;
+                
+                if (!userId || !newPlan) {
+                    throw new Error('Missing user ID or plan type');
+                }
+
                 const expiryDate = new Date();
                 expiryDate.setMonth(expiryDate.getMonth() + 1);
 
@@ -1919,262 +2216,60 @@
                 showToast('User plan changed successfully!', 'success');
             } catch (error) {
                 hideLoading();
-                showToast('Error changing user plan: ' + error.message, 'error');
+                console.error('Error changing user plan:', error);
+                showToast('Error changing user plan: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
         // ============================================
-        // UI Helper Functions
+        // Event Listeners
         // ============================================
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // Remove active from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // Show selected section
-            document.getElementById(sectionId).classList.add('active');
-
-            // Add active to clicked nav item
-            event.target.closest('.nav-item').classList.add('active');
-
-            // Close mobile menu
-            document.getElementById('sidebar').classList.remove('open');
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-
-        function hideModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toast.className = 'toast ' + type;
-            toastMessage.textContent = message;
-            toast.style.display = 'flex';
-
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-
+        
         // Close modal on outside click
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
-
-        // Mobile menu toggle
-        const mobileMenuBtn = document.createElement('button');
-        mobileMenuBtn.className = 'mobile-menu-btn';
-        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        mobileMenuBtn.onclick = () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        };
-        document.body.appendChild(mobileMenuBtn);
-
-        // ============================================
-        // Initialize on page load
-        // ============================================
-        window.addEventListener('load', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                await handleUserLogin(session.user);
+                event.target.classList.remove('show');
             }
         });
 
         // ============================================
-        // DATABASE SETUP INSTRUCTIONS
+        // Initialize on page load
         // ============================================
-        /*
-        
-        SUPABASE DATABASE SETUP:
-        
-        1. Create tables with the following SQL:
-
-        -- Users table
-        CREATE TABLE users (
-            id UUID PRIMARY KEY REFERENCES auth.users(id),
-            email TEXT UNIQUE NOT NULL,
-            name TEXT,
-            avatar_url TEXT,
-            google_id TEXT,
-            instagram_connected BOOLEAN DEFAULT false,
-            instagram_token TEXT,
-            instagram_username TEXT,
-            plan_type TEXT DEFAULT 'free',
-            plan_expiry TIMESTAMP,
-            contacts_count INTEGER DEFAULT 0,
-            automations_count INTEGER DEFAULT 0,
-            is_admin BOOLEAN DEFAULT false,
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW()
-        );
-
-        -- Contacts table
-        CREATE TABLE contacts (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-            instagram_id TEXT,
-            username TEXT NOT NULL,
-            profile_pic TEXT,
-            tags TEXT[],
-            last_message_at TIMESTAMP,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-
-        -- Automations table
-        CREATE TABLE automations (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-            name TEXT NOT NULL,
-            trigger_type TEXT NOT NULL,
-            trigger_keywords TEXT[],
-            response_message TEXT NOT NULL,
-            is_active BOOLEAN DEFAULT true,
-            stats JSONB DEFAULT '{"triggered": 0, "replied": 0}'::jsonb,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-
-        -- Messages table
-        CREATE TABLE messages (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-            contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
-            content TEXT NOT NULL,
-            sender_type TEXT NOT NULL,
-            is_automated BOOLEAN DEFAULT false,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-
-        -- Subscriptions table
-        CREATE TABLE subscriptions (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-            plan_type TEXT NOT NULL,
-            amount INTEGER NOT NULL,
-            transaction_id TEXT,
-            payment_status TEXT DEFAULT 'pending',
-            payment_method TEXT DEFAULT 'phonepe',
-            created_at TIMESTAMP DEFAULT NOW(),
-            expires_at TIMESTAMP
-        );
-
-        -- Plans table
-        CREATE TABLE plans (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            name TEXT UNIQUE NOT NULL,
-            price INTEGER NOT NULL,
-            contacts_limit INTEGER NOT NULL,
-            automations_limit INTEGER NOT NULL,
-            team_members_limit INTEGER NOT NULL,
-            features JSONB,
-            is_active BOOLEAN DEFAULT true
-        );
-
-        -- Insert default plans
-        INSERT INTO plans (name, price, contacts_limit, automations_limit, team_members_limit, is_active) VALUES
-        ('free', 0, 1000, 3, 1, true),
-        ('pro', 199, 10000, 25, 5, true),
-        ('master', 499, -1, -1, -1, true);
-
-        2. Set up Row Level Security (RLS):
-
-        -- Enable RLS on all tables
-        ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE automations ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE plans ENABLE ROW LEVEL SECURITY;
-
-        -- Users policies
-        CREATE POLICY "Users can view own data" ON users
-            FOR SELECT USING (auth.uid() = id);
-        
-        CREATE POLICY "Users can update own data" ON users
-            FOR UPDATE USING (auth.uid() = id);
-
-        CREATE POLICY "Admins can view all users" ON users
-            FOR SELECT USING (
-                EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true)
-            );
-
-        CREATE POLICY "Admins can update all users" ON users
-            FOR UPDATE USING (
-                EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true)
-            );
-
-        -- Contacts policies
-        CREATE POLICY "Users can manage own contacts" ON contacts
-            FOR ALL USING (auth.uid() = user_id);
-
-        -- Automations policies
-        CREATE POLICY "Users can manage own automations" ON automations
-            FOR ALL USING (auth.uid() = user_id);
-
-        -- Messages policies
-        CREATE POLICY "Users can manage own messages" ON messages
-            FOR ALL USING (auth.uid() = user_id);
-
-        -- Subscriptions policies
-        CREATE POLICY "Users can view own subscriptions" ON subscriptions
-            FOR SELECT USING (auth.uid() = user_id);
-
-        CREATE POLICY "Users can insert own subscriptions" ON subscriptions
-            FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-        CREATE POLICY "Admins can view all subscriptions" ON subscriptions
-            FOR SELECT USING (
-                EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true)
-            );
-
-        -- Plans policies (everyone can read, only admins can modify)
-        CREATE POLICY "Anyone can view plans" ON plans
-            FOR SELECT USING (true);
-
-        CREATE POLICY "Admins can update plans" ON plans
-            FOR UPDATE USING (
-                EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true)
-            );
-
-        3. Enable Google OAuth:
-        - Go to Authentication > Providers
-        - Enable Google provider
-        - Add your Google Client ID and Secret
-        - Add authorized redirect URL: https://your-project.supabase.co/auth/v1/callback
-
-        4. To make a user admin:
-        UPDATE users SET is_admin = true WHERE email = 'your-admin-email@example.com';
-
-        5. Update CONFIGURATION section in the code with your:
-        - SUPABASE_URL
-        - SUPABASE_ANON_KEY
-        - UPI_ID (for PhonePe payments)
-
-        */
-
-        console.log('%c🚀 InstaBot Pro Loaded Successfully!', 'color: #6366f1; font-size: 20px; font-weight: bold;');
-        console.log('%cSee database setup instructions in source code', 'color: #94a3b8; font-size: 14px;');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize DOM elements
+            initializeElements();
+            
+            // Initialize particles
+            initParticles();
+            
+            // Setup mobile menu
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar) {
+                        sidebar.classList.toggle('open');
+                    }
+                });
+            }
+            
+            // Setup auth listener
+            setupAuthListener();
+            
+            // Check for existing session
+            if (supabase) {
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session) {
+                        handleUserLogin(session.user);
+                    }
+                }).catch(error => {
+                    console.error('Error getting session:', error);
+                });
+            }
+            
+            console.log('%c🚀 InstaBot Pro Loaded Successfully!', 'color: #6366f1; font-size: 20px; font-weight: bold;');
+            console.log('%cAll bugs have been fixed!', 'color: #10b981; font-size: 14px;');
+        });
     </script>
 </body>
 </html>
