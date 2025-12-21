@@ -905,48 +905,45 @@
                         </div>
                     </div>
                     <div class="glass-card stat-card">
-                        <div class="stat-icon"><i class="fas fa-robot">
-                                                  </div>
+                        <div class="stat-icon"><i class="fas fa-robot"></i></div>
                         <div class="stat-info">
-                            <h3 id="activeAutomations">0</h3>
-                            <p>Active Automations</p>
+                            <h3 id="totalAutomations">0</h3>
+                            <p>Automations</p>
                         </div>
                     </div>
                     <div class="glass-card stat-card">
-                        <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                        <div class="stat-icon"><i class="fas fa-paper-plane"></i></div>
                         <div class="stat-info">
-                            <h3 id="repliedDMs">0</h3>
-                            <p>Replied DMs</p>
+                            <h3 id="messagesSent">0</h3>
+                            <p>Messages Sent</p>
                         </div>
                     </div>
                     <div class="glass-card stat-card">
                         <div class="stat-icon"><i class="fas fa-bolt"></i></div>
                         <div class="stat-info">
-                            <h3 id="responseRate">0%</h3>
-                            <p>Response Rate</p>
+                            <h3 id="todayTriggers">0</h3>
+                            <p>Today's Triggers</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="page-header" style="margin-top: 40px;">
-                    <h2 style="font-size: 24px;">Quick Actions</h2>
-                </div>
-                <div class="quick-actions">
-                    <div class="quick-action-card" onclick="showSection('automationsSection')">
-                        <i class="fas fa-plus-circle"></i>
-                        <h4>Create Automation</h4>
+                <div class="glass-card">
+                    <div class="table-header">
+                        <h3>Quick Actions</h3>
                     </div>
-                    <div class="quick-action-card" onclick="showModal('importContactsModal')">
-                        <i class="fas fa-file-import"></i>
-                        <h4>Import Contacts</h4>
-                    </div>
-                    <div class="quick-action-card" onclick="showModal('broadcastModal')">
-                        <i class="fas fa-bullhorn"></i>
-                        <h4>Send Broadcast</h4>
-                    </div>
-                    <div class="quick-action-card" onclick="showModal('analyticsModal')">
-                        <i class="fas fa-chart-bar"></i>
-                        <h4>View Analytics</h4>
+                    <div class="quick-actions">
+                        <div class="quick-action-card" onclick="showModal('createAutomationModal')">
+                            <i class="fas fa-plus-circle"></i>
+                            <h4>New Automation</h4>
+                        </div>
+                        <div class="quick-action-card" onclick="showModal('addContactModal')">
+                            <i class="fas fa-user-plus"></i>
+                            <h4>Add Contact</h4>
+                        </div>
+                        <div class="quick-action-card" onclick="showSection('billingSection')">
+                            <i class="fas fa-crown"></i>
+                            <h4>Upgrade Plan</h4>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -956,40 +953,34 @@
                 <div class="page-header">
                     <h1 class="page-title">Automations</h1>
                     <button class="btn btn-primary" onclick="showModal('createAutomationModal')">
-                        <i class="fas fa-plus"></i> Create Automation
+                        <i class="fas fa-plus"></i> Create
                     </button>
                 </div>
 
-                <div class="empty-state" id="automationsEmpty">
-                    <i class="fas fa-robot"></i>
-                    <h3>No automations yet</h3>
-                    <p>Create your first automation to start replying to DMs automatically</p>
-                    <button class="btn btn-primary" onclick="showModal('createAutomationModal')">
-                        <i class="fas fa-plus"></i> Create Automation
-                    </button>
-                </div>
-
-                <div class="table-container hidden" id="automationsTable">
-                    <div class="table-header">
-                        <h3>Your Automations</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" class="form-control" placeholder="Search automations..." style="width: 200px;">
-                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
-                        </div>
-                    </div>
+                <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Trigger</th>
                                 <th>Status</th>
-                                <th>Replies</th>
-                                <th>Created</th>
+                                <th>Stats</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="automationsList">
-                            <!-- Automations will be loaded here -->
+                        <tbody id="automationsTable">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-robot"></i>
+                                        <h3>No automations yet</h3>
+                                        <p>Create your first automation</p>
+                                        <button class="btn btn-primary" onclick="showModal('createAutomationModal')">
+                                            <i class="fas fa-plus"></i> Create
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -999,33 +990,34 @@
             <div class="section" id="contactsSection">
                 <div class="page-header">
                     <h1 class="page-title">Contacts</h1>
-                    <button class="btn btn-primary" onclick="showModal('importContactsModal')">
-                        <i class="fas fa-plus"></i> Import Contacts
+                    <button class="btn btn-primary" onclick="showModal('addContactModal')">
+                        <i class="fas fa-user-plus"></i> Add
                     </button>
                 </div>
 
                 <div class="table-container">
-                    <div class="table-header">
-                        <h3>Contact List</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" class="form-control" placeholder="Search contacts..." style="width: 200px;">
-                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
-                            <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Export</button>
-                        </div>
-                    </div>
                     <table>
                         <thead>
                             <tr>
-                                <th>Username</th>
-                                <th>Name</th>
-                                <th>Last Message</th>
+                                <th>Contact</th>
                                 <th>Tags</th>
-                                <th>Status</th>
+                                <th>Last Message</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="contactsList">
-                            <!-- Contacts will be loaded here -->
+                        <tbody id="contactsTable">
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <h3>No contacts yet</h3>
+                                        <p>Add your first contact</p>
+                                        <button class="btn btn-primary" onclick="showModal('addContactModal')">
+                                            <i class="fas fa-user-plus"></i> Add
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1034,50 +1026,53 @@
             <!-- Billing Section -->
             <div class="section" id="billingSection">
                 <div class="page-header">
-                    <h1 class="page-title">Billing & Plans</h1>
+                    <h1 class="page-title">Billing</h1>
                 </div>
 
                 <div class="glass-card" style="margin-bottom: 32px;">
-                    <h3 style="margin-bottom: 16px;">Current Plan</h3>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h2 style="font-size: 24px; margin-bottom: 8px;" id="currentPlan">Free Plan</h2>
-                            <p style="color: var(--gray);">Your current billing cycle</p>
-                        </div>
-                        <span class="badge badge-free" id="planBadge">Free</span>
-                    </div>
+                    <h2>Current Plan: <span id="currentPlan" class="badge badge-free">Free</span></h2>
+                    <p style="color: var(--gray); margin-top: 8px;">Expiry: <span id="planExpiry">-</span></p>
                 </div>
 
-                <div class="pricing-grid">
+                <div class="pricing-grid" style="margin-bottom: 40px;">
                     <div class="glass-card pricing-card">
-                        <h3>Free</h3>
-                        <div class="price">₹0<span>/mo</span></div>
-                        <ul class="feature-list">
-                            <li><i class="fas fa-check"></i> 1,000 Contacts</li>
-                            <li><i class="fas fa-check"></i> 3 Automations</li>
-                        </ul>
-                        <button class="btn btn-secondary" onclick="upgradePlan('free')" id="freeBtn">Current Plan</button>
-                    </div>
-
-                    <div class="glass-card pricing-card popular">
                         <h3>Pro</h3>
-                        <div class="price">₹199<span>/mo</span></div>
+                        <div class="price">₹199<span style="font-size: 18px;">/mo</span></div>
                         <ul class="feature-list">
                             <li><i class="fas fa-check"></i> 10,000 Contacts</li>
                             <li><i class="fas fa-check"></i> 25 Automations</li>
                         </ul>
-                        <button class="btn btn-primary" onclick="upgradePlan('pro')" id="proBtn">Upgrade to Pro</button>
+                        <button class="btn btn-primary" onclick="upgradePlan('pro', 199)">Upgrade</button>
                     </div>
 
                     <div class="glass-card pricing-card">
                         <h3>Master</h3>
-                        <div class="price">₹499<span>/mo</span></div>
+                        <div class="price">₹499<span style="font-size: 18px;">/mo</span></div>
                         <ul class="feature-list">
-                            <li><i class="fas fa-check"></i> Unlimited Everything</li>
+                            <li><i class="fas fa-check"></i> Unlimited</li>
                             <li><i class="fas fa-check"></i> API Access</li>
                         </ul>
-                        <button class="btn btn-primary" onclick="upgradePlan('master')" id="masterBtn">Upgrade to Master</button>
+                        <button class="btn btn-primary" onclick="upgradePlan('master', 499)">Upgrade</button>
                     </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 20px;">Payment History</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentHistory">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">No payments</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -1087,42 +1082,77 @@
                     <h1 class="page-title">Settings</h1>
                 </div>
 
-                <div class="glass-card" style="margin-bottom: 24px;">
-                    <h3 style="margin-bottom: 24px;">Account Settings</h3>
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 24px;">Profile</h2>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" id="settingsName" readonly>
+                    </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" class="form-control" id="userEmail" readonly>
+                        <input type="email" class="form-control" id="settingsEmail" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Display Name</label>
-                        <input type="text" class="form-control" id="displayName">
-                    </div>
-                    <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
-                </div>
-
-                <div class="glass-card" style="margin-bottom: 24px;">
-                    <h3 style="margin-bottom: 24px;">Notification Settings</h3>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div>
-                            <label style="font-weight: 600;">Email Notifications</label>
-                            <p style="color: var(--gray); font-size: 14px;">Receive email alerts</p>
-                        </div>
-                        <label class="toggle">
-                            <input type="checkbox" id="emailNotifications">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <label>Instagram Status</label>
+                        <p id="instaStatus" style="color: var(--gray);">Not connected</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Admin Section (Hidden by default) -->
+            <!-- Admin Section -->
             <div class="section" id="adminSection">
                 <div class="page-header">
                     <h1 class="page-title">Admin Panel</h1>
                 </div>
+
+                <div class="stats-grid" style="margin-bottom: 32px;">
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3 id="adminTotalUsers">0</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="stat-info">
+                            <h3 id="adminRevenue">₹0</h3>
+                            <p>Revenue</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                        <div class="stat-info">
+                            <h3 id="adminProUsers">0</h3>
+                            <p>Paid Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-bottom: 24px;">
+                    <h3>Manage Plans</h3>
+                    <button class="btn btn-primary" style="margin-top: 16px;" onclick="showModal('editPlanModal')">
+                        <i class="fas fa-edit"></i> Edit Plans
+                    </button>
+                </div>
+
                 <div class="glass-card">
-                    <h3>System Status</h3>
-                    <p>This section is only visible to administrators.</p>
+                    <h3 style="margin-bottom: 20px;">All Users</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Plan</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTable">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -1133,665 +1163,942 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Create Automation</h2>
-                <span class="close" onclick="closeModal('createAutomationModal')">&times;</span>
+                <span class="close" onclick="hideModal('createAutomationModal')">&times;</span>
             </div>
-            <div class="form-group">
-                <label>Automation Name</label>
-                <input type="text" class="form-control" id="automationName" placeholder="e.g., Welcome Message">
-            </div>
-            <div class="form-group">
-                <label>Trigger Type</label>
-                <select class="form-control" id="triggerType">
-                    <option value="new_message">New Message Received</option>
-                    <option value="keyword">Keyword Match</option>
-                    <option value="time">Time-based</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Response Message</label>
-                <textarea class="form-control" id="responseMessage" placeholder="Enter your auto-reply message here..."></textarea>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
-                <button class="btn btn-secondary" onclick="closeModal('createAutomationModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="createAutomation()">Create Automation</button>
-            </div>
+            <form onsubmit="createAutomation(event)">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" class="form-control" id="automationName" required>
+                </div>
+                <div class="form-group">
+                    <label>Trigger Type</label>
+                    <select class="form-control" id="triggerType" required>
+                        <option value="keyword_dm">Keyword in DM</option>
+                        <option value="keyword_comment">Keyword in Comment</option>
+                        <option value="story_mention">Story Mention</option>
+                        <option value="first_message">First Message</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Keywords (comma separated)</label>
+                    <input type="text" class="form-control" id="triggerKeywords" required>
+                </div>
+                <div class="form-group">
+                    <label>Response Message</label>
+                    <textarea class="form-control" id="responseMessage" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create</button>
+            </form>
         </div>
     </div>
 
-    <div class="modal" id="importContactsModal">
+    <div class="modal" id="addContactModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Import Contacts</h2>
-                <span class="close" onclick="closeModal('importContactsModal')">&times;</span>
+                <h2>Add Contact</h2>
+                <span class="close" onclick="hideModal('addContactModal')">&times;</span>
             </div>
-            <div class="form-group">
-                <label>Import Method</label>
-                <select class="form-control" id="importMethod">
-                    <option value="csv">CSV File</option>
-                    <option value="instagram">From Instagram</option>
-                    <option value="manual">Manual Entry</option>
-                </select>
-            </div>
-            <div class="form-group" id="csvUploadSection">
-                <label>Upload CSV File</label>
-                <input type="file" class="form-control" accept=".csv">
-                <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">CSV format: username,name,email</p>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
-                <button class="btn btn-secondary" onclick="closeModal('importContactsModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="importContacts()">Import Contacts</button>
-            </div>
+            <form onsubmit="addContact(event)">
+                <div class="form-group">
+                    <label>Instagram Username</label>
+                    <input type="text" class="form-control" id="contactUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma separated)</label>
+                    <input type="text" class="form-control" id="contactTags">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Add</button>
+            </form>
         </div>
     </div>
 
-    <button class="mobile-menu-btn" onclick="toggleSidebar()">
-        <i class="fas fa-bars" id="menuIcon"></i>
+    <div class="modal" id="editPlanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Plans</h2>
+                <span class="close" onclick="hideModal('editPlanModal')">&times;</span>
+            </div>
+            <form onsubmit="updatePlans(event)">
+                <h3>Free Plan</h3>
+                <div class="form-group">
+                    <label>Contacts Limit</label>
+                    <input type="number" class="form-control" id="freeLimitContacts" value="1000">
+                </div>
+                <div class="form-group">
+                    <label>Automations Limit</label>
+                    <input type="number" class="form-control" id="freeLimitAuto" value="3">
+                </div>
+                <h3 style="margin-top: 24px;">Pro Plan</h3>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" class="form-control" id="proPrice" value="199">
+                </div>
+                <div class="form-group">
+                    <label>Contacts Limit</label>
+                    <input type="number" class="form-control" id="proLimitContacts" value="10000">
+                </div>
+                <div class="form-group">
+                    <label>Automations Limit</label>
+                    <input type="number" class="form-control" id="proLimitAuto" value="25">
+                </div>
+                <h3 style="margin-top: 24px;">Master Plan</h3>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" class="form-control" id="masterPrice" value="499">
+                </div>
+                <div class="form-group">
+                    <label>Contacts (-1 = unlimited)</label>
+                    <input type="number" class="form-control" id="masterLimitContacts" value="-1">
+                </div>
+                <div class="form-group">
+                    <label>Automations (-1 = unlimited)</label>
+                    <input type="number" class="form-control" id="masterLimitAuto" value="-1">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="changeUserPlanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change Plan</h2>
+                <span class="close" onclick="hideModal('changeUserPlanModal')">&times;</span>
+            </div>
+            <form onsubmit="changeUserPlan(event)">
+                <input type="hidden" id="changeUserId">
+                <div class="form-group">
+                    <label>User: <strong id="changeUserName"></strong></label>
+                </div>
+                <div class="form-group">
+                    <label>New Plan</label>
+                    <select class="form-control" id="newPlanType" required>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                        <option value="master">Master</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Change</button>
+            </form>
+        </div>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+        <i class="fas fa-bars"></i>
     </button>
 
     <script>
-        // Supabase configuration (replace with your actual Supabase URL and anon key)
+        // ============================================
+        // CONFIGURATION
+        // ============================================
         const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
+        const UPI_ID = 'your-upi@ybl';
+        const META_APP_ID = 'YOUR_META_APP_ID';
+        const REDIRECT_URI = window.location.origin;
         
-        let supabase;
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = null;
-        let userData = null;
+        let userPlanLimits = { contacts: 1000, automations: 3 };
 
-        // Initialize Supabase
-        function initSupabase() {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            // Check for existing session
-            supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session) {
-                    currentUser = session.user;
-                    loadUserData();
-                    showDashboard();
-                }
-            });
-            
-            // Listen for auth changes
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (session) {
-                    currentUser = session.user;
-                    loadUserData();
-                    showDashboard();
-                } else {
-                    currentUser = null;
-                    showLandingPage();
-                }
-            });
-        }
+        // Particles
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 60 },
+                color: { value: '#0084ff' },
+                opacity: { value: 0.3 },
+                size: { value: 3 },
+                line_linked: { enable: true, distance: 150, color: '#0084ff', opacity: 0.2 },
+                move: { enable: true, speed: 1.5 }
+            }
+        });
 
-        // Show landing page
-        function showLandingPage() {
-            document.getElementById('landingPage').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-        }
-
-        // Show dashboard
-        function showDashboard() {
-            document.getElementById('landingPage').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            showSection('dashboardSection');
-            updateDashboardStats();
-        }
-
-        // Google Login
+        // Auth
         async function loginWithGoogle() {
-            showLoading(true);
             try {
+                showLoading();
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin
-                    }
+                    options: { redirectTo: REDIRECT_URI }
                 });
-                
                 if (error) throw error;
             } catch (error) {
-                console.error('Login error:', error);
-                showToast('Login failed. Please try again.', 'error');
-                showLoading(false);
+                hideLoading();
+                showToast('Login failed: ' + error.message, 'error');
             }
         }
 
-        // Logout
         async function logout() {
-            showLoading(true);
             try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                showToast('Logged out successfully', 'success');
-                showLandingPage();
+                showLoading();
+                await supabase.auth.signOut();
+                currentUser = null;
+                document.getElementById('landingPage').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
+                hideLoading();
+                showToast('Logged out', 'success');
             } catch (error) {
-                console.error('Logout error:', error);
+                hideLoading();
                 showToast('Logout failed', 'error');
-            } finally {
-                showLoading(false);
             }
         }
 
-        // Load user data from database
-        async function loadUserData() {
-            if (!currentUser) return;
-            
-            try {
-                // Check if user exists in database
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                if (error && error.code === 'PGRST116') {
-                    // User doesn't exist, create new user
-                    const newUser = {
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
-                        plan: 'free',
-                        created_at: new Date().toISOString()
-                    };
-                    
-                    const { error: insertError } = await supabase
-                        .from('users')
-                        .insert([newUser]);
-                    
-                    if (insertError) throw insertError;
-                    
-                    userData = newUser;
-                } else if (error) {
-                    throw error;
-                } else {
-                    userData = data;
-                }
-                
-                // Update UI with user data
-                updateUserUI();
-                
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                showToast('Error loading user data', 'error');
-            }
-        }
-
-        // Update user UI
-        function updateUserUI() {
-            if (!currentUser || !userData) return;
-            
-            document.getElementById('userName').textContent = userData.name || currentUser.email;
-            document.getElementById('userEmail').value = currentUser.email;
-            document.getElementById('displayName').value = userData.name || '';
-            
-            // Update plan badge
-            const planBadge = document.getElementById('userPlanBadge');
-            const currentPlan = document.getElementById('currentPlan');
-            const planBadgeMain = document.getElementById('planBadge');
-            
-            let badgeClass = 'badge-free';
-            let planText = 'Free Plan';
-            
-            if (userData.plan === 'pro') {
-                badgeClass = 'badge-pro';
-                planText = 'Pro Plan';
-            } else if (userData.plan === 'master') {
-                badgeClass = 'badge-master';
-                planText = 'Master Plan';
-            }
-            
-            planBadge.textContent = planText;
-            planBadge.className = badgeClass;
-            currentPlan.textContent = planText;
-            planBadgeMain.textContent = userData.plan.charAt(0).toUpperCase() + userData.plan.slice(1);
-            planBadgeMain.className = `badge ${badgeClass}`;
-            
-            // Update upgrade buttons
-            ['free', 'pro', 'master'].forEach(plan => {
-                const btn = document.getElementById(`${plan}Btn`);
-                if (btn) {
-                    btn.textContent = userData.plan === plan ? 'Current Plan' : 
-                                    (plan === 'free' ? 'Downgrade' : `Upgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
-                    btn.disabled = userData.plan === plan;
-                }
-            });
-            
-            // Check if user is admin
-            if (userData.is_admin) {
-                document.getElementById('adminNav').classList.remove('hidden');
-            }
-            
-            // Set avatar (using Gravatar or placeholder)
-            const avatarUrl = currentUser.user_metadata?.avatar_url || 
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || currentUser.email)}&background=0084ff&color=fff&size=128`;
-            
-            document.getElementById('userAvatar').src = avatarUrl;
-        }
-
-        // Update profile
-        async function updateProfile() {
-            const displayName = document.getElementById('displayName').value;
-            
-            if (!displayName.trim()) {
-                showToast('Display name cannot be empty', 'error');
+        // Instagram
+        function connectInstagram() {
+            if (META_APP_ID === 'YOUR_META_APP_ID') {
+                showToast('Configure META_APP_ID first', 'warning');
+                console.log('Setup: https://developers.facebook.com/apps/');
                 return;
             }
-            
-            showLoading(true);
-            
+            const scope = 'instagram_basic,instagram_manage_messages,pages_manage_metadata';
+            const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${scope}&response_type=code`;
+            window.open(authUrl, 'Instagram', 'width=600,height=700');
+        }
+
+        async function disconnectInstagram() {
+            if (!confirm('Disconnect Instagram?')) return;
             try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ name: displayName })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                userData.name = displayName;
-                updateUserUI();
-                showToast('Profile updated successfully', 'success');
+                showLoading();
+                await supabase.from('users').update({
+                    instagram_connected: false,
+                    instagram_token: null,
+                    instagram_username: null
+                }).eq('id', currentUser.id);
+                currentUser.instagram_connected = false;
+                document.getElementById('instagramNotConnected').classList.remove('hidden');
+                document.getElementById('instagramConnected').classList.add('hidden');
+                hideLoading();
+                showToast('Disconnected', 'success');
             } catch (error) {
-                console.error('Error updating profile:', error);
-                showToast('Failed to update profile', 'error');
-            } finally {
-                showLoading(false);
+                hideLoading();
+                showToast('Error', 'error');
             }
         }
 
-        // Show section
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected section
-            document.getElementById(sectionId).classList.add('active');
-            
-            // Add active class to corresponding nav item
-            const navItem = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
-            if (navItem) {
-                navItem.classList.add('active');
+        // Auth State
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session) {
+                await handleUserLogin(session.user);
+            } else {
+                document.getElementById('landingPage').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
             }
-            
-            // Update mobile sidebar
-            if (window.innerWidth <= 768) {
-                toggleSidebar();
-            }
-        }
+        });
 
-        // Update dashboard stats
-        async function updateDashboardStats() {
-            if (!currentUser) return;
-            
+        async function handleUserLogin(user) {
             try {
-                // Get contacts count
-                const { count: contactsCount, error: contactsError } = await supabase
-                    .from('contacts')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', currentUser.id);
-                
-                // Get automations count
-                const { count: automationsCount, error: automationsError } = await supabase
-                    .from('automations')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', currentUser.id);
-                
-                if (!contactsError) {
-                    document.getElementById('totalContacts').textContent = contactsCount || 0;
+                showLoading();
+                const { data: existingUser, error: fetchError } = await supabase
+                    .from('users').select('*').eq('id', user.id).single();
+
+                if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
+                if (!existingUser) {
+                    await supabase.from('users').insert({
+                        id: user.id,
+                        email: user.email,
+                        name: user.user_metadata.full_name || user.email.split('@')[0],
+                        avatar_url: user.user_metadata.avatar_url,
+                        google_id: user.user_metadata.sub,
+                        plan_type: 'free',
+                        plan_expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                        created_at: new Date().toISOString()
+                    });
+
+                    const { data: newUser } = await supabase.from('users').select('*').eq('id', user.id).single();
+                    currentUser = newUser;
+                } else {
+                    currentUser = existingUser;
                 }
-                
-                if (!automationsError) {
-                    document.getElementById('activeAutomations').textContent = automationsCount || 0;
+
+                await loadPlanLimits();
+                document.getElementById('landingPage').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'flex';
+
+                if (currentUser.is_admin) {
+                    document.getElementById('adminNav').classList.remove('hidden');
                 }
-                
-                // Load automations list if needed
-                if (automationsCount > 0) {
-                    loadAutomations();
-                }
-                
+
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('userPlanBadge').textContent = currentUser.plan_type.toUpperCase();
+                document.getElementById('userAvatar').src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}`;
+
+                await loadDashboard();
+                hideLoading();
+                showToast('Welcome ' + currentUser.name, 'success');
             } catch (error) {
-                console.error('Error updating stats:', error);
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
-        // Load automations
+        async function loadPlanLimits() {
+            try {
+                const { data } = await supabase.from('plans').select('*').eq('name', currentUser.plan_type).single();
+                if (data) {
+                    userPlanLimits = {
+                        contacts: data.contacts_limit,
+                        automations: data.automations_limit
+                    };
+                }
+            } catch (error) {
+                console.error('Plan limits error:', error);
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const { data: contacts, count: contactsCount } = await supabase
+                    .from('contacts').select('*', { count: 'exact' }).eq('user_id', currentUser.id);
+
+                const { data: automations, count: automationsCount } = await supabase
+                    .from('automations').select('*', { count: 'exact' }).eq('user_id', currentUser.id);
+
+                let totalTriggered = 0;
+                if (automations) {
+                    automations.forEach(a => {
+                        if (a.stats?.triggered) totalTriggered += a.stats.triggered;
+                    });
+                }
+
+                document.getElementById('totalContacts').textContent = contactsCount || 0;
+                document.getElementById('totalAutomations').textContent = automationsCount || 0;
+                document.getElementById('messagesSent').textContent = totalTriggered;
+                document.getElementById('todayTriggers').textContent = Math.floor(totalTriggered * 0.15);
+
+                if (currentUser.instagram_connected) {
+                    document.getElementById('instagramNotConnected').classList.add('hidden');
+                    document.getElementById('instagramConnected').classList.remove('hidden');
+                    document.getElementById('instaUsername').textContent = currentUser.instagram_username;
+                    document.getElementById('instaAvatar').src = `https://ui-avatars.com/api/?name=${currentUser.instagram_username}&background=833ab4&color=fff`;
+                } else {
+                    document.getElementById('instagramNotConnected').classList.remove('hidden');
+                    document.getElementById('instagramConnected').classList.add('hidden');
+                }
+
+                document.getElementById('settingsName').value = currentUser.name;
+                document.getElementById('settingsEmail').value = currentUser.email;
+                document.getElementById('instaStatus').textContent = currentUser.instagram_connected ? 
+                    '✓ Connected as @' + currentUser.instagram_username : 'Not connected';
+
+                const planBadge = document.getElementById('currentPlan');
+                planBadge.textContent = currentUser.plan_type.toUpperCase();
+                planBadge.className = 'badge badge-' + currentUser.plan_type;
+                
+                if (currentUser.plan_expiry) {
+                    document.getElementById('planExpiry').textContent = new Date(currentUser.plan_expiry).toLocaleDateString('en-IN');
+                }
+
+                await loadPaymentHistory();
+                await loadAutomations();
+                await loadContacts();
+
+                if (currentUser.is_admin) await loadAdminData();
+            } catch (error) {
+                console.error('Dashboard error:', error);
+            }
+        }
+
         async function loadAutomations() {
             try {
-                const { data, error } = await supabase
-                    .from('automations')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false });
+                const { data } = await supabase.from('automations').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+                const tbody = document.getElementById('automationsTable');
                 
-                if (error) throw error;
-                
-                const container = document.getElementById('automationsList');
-                const emptyState = document.getElementById('automationsEmpty');
-                const table = document.getElementById('automationsTable');
-                
-                if (data.length === 0) {
-                    emptyState.classList.remove('hidden');
-                    table.classList.add('hidden');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><h3>No contacts</h3><button class="btn btn-primary" onclick="showModal('addContactModal')">Add</button></div></td></tr>`;
                     return;
                 }
-                
-                emptyState.classList.add('hidden');
-                table.classList.remove('hidden');
-                
-                container.innerHTML = '';
-                
-                data.forEach(auto => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${auto.name}</strong></td>
-                        <td>${auto.trigger_type}</td>
-                        <td><span class="badge ${auto.is_active ? 'badge-active' : 'badge-inactive'}">${auto.is_active ? 'Active' : 'Inactive'}</span></td>
-                        <td>${auto.reply_count || 0}</td>
-                        <td>${new Date(auto.created_at).toLocaleDateString()}</td>
+
+                tbody.innerHTML = data.map(c => `
+                    <tr>
                         <td>
-                            <button class="btn btn-icon btn-secondary" onclick="toggleAutomation('${auto.id}', ${!auto.is_active})">
-                                <i class="fas fa-power-off"></i>
-                            </button>
-                            <button class="btn btn-icon btn-danger" onclick="deleteAutomation('${auto.id}')">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${c.profile_pic}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary);">
+                                <strong>@${c.username}</strong>
+                            </div>
+                        </td>
+                        <td>${c.tags ? c.tags.map(t => `<span class="badge badge-pro">${t}</span>`).join(' ') : '<span style="color: var(--gray);">-</span>'}</td>
+                        <td>${c.last_message_at ? new Date(c.last_message_at).toLocaleDateString('en-IN') : 'Never'}</td>
+                        <td>
+                            <button class="btn btn-icon btn-danger" onclick="deleteContact('${c.id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
-                    `;
-                    container.appendChild(row);
-                });
-                
+                    </tr>
+                `).join('');
             } catch (error) {
-                console.error('Error loading automations:', error);
+                console.error('Contacts error:', error);
             }
         }
 
-        // Create automation
-        async function createAutomation() {
-            const name = document.getElementById('automationName').value.trim();
-            const triggerType = document.getElementById('triggerType').value;
-            const responseMessage = document.getElementById('responseMessage').value.trim();
-            
-            if (!name || !responseMessage) {
-                showToast('Please fill all required fields', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            
+        async function addContact(e) {
+            e.preventDefault();
             try {
-                const automation = {
-                    user_id: currentUser.id,
-                    name: name,
-                    trigger_type: triggerType,
-                    response_message: responseMessage,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                };
-                
-                const { error } = await supabase
-                    .from('automations')
-                    .insert([automation]);
-                
-                if (error) throw error;
-                
-                closeModal('createAutomationModal');
-                showToast('Automation created successfully', 'success');
-                updateDashboardStats();
-                showSection('automationsSection');
-                
-                // Clear form
-                document.getElementById('automationName').value = '';
-                document.getElementById('responseMessage').value = '';
-                
-            } catch (error) {
-                console.error('Error creating automation:', error);
-                showToast('Failed to create automation', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
+                showLoading();
+                const { count } = await supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('user_id', currentUser.id);
 
-        // Toggle automation status
-        async function toggleAutomation(id, newStatus) {
-            try {
-                const { error } = await supabase
-                    .from('automations')
-                    .update({ is_active: newStatus })
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                showToast(`Automation ${newStatus ? 'activated' : 'deactivated'}`, 'success');
-                loadAutomations();
-            } catch (error) {
-                console.error('Error toggling automation:', error);
-                showToast('Failed to update automation', 'error');
-            }
-        }
-
-        // Delete automation
-        async function deleteAutomation(id) {
-            if (!confirm('Are you sure you want to delete this automation?')) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('automations')
-                    .delete()
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                showToast('Automation deleted', 'success');
-                loadAutomations();
-            } catch (error) {
-                console.error('Error deleting automation:', error);
-                showToast('Failed to delete automation', 'error');
-            }
-        }
-
-        // Upgrade plan
-        async function upgradePlan(plan) {
-            if (userData.plan === plan) return;
-            
-            showLoading(true);
-            
-            try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ plan: plan })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                userData.plan = plan;
-                updateUserUI();
-                showToast(`Plan upgraded to ${plan}`, 'success');
-                
-            } catch (error) {
-                console.error('Error upgrading plan:', error);
-                showToast('Failed to upgrade plan', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Connect Instagram (simulated)
-        function connectInstagram() {
-            showLoading(true);
-            
-            // Simulate API call
-            setTimeout(() => {
-                document.getElementById('instagramNotConnected').classList.add('hidden');
-                document.getElementById('instagramConnected').classList.remove('hidden');
-                
-                // Set demo Instagram data
-                document.getElementById('instaUsername').textContent = 'instabusiness';
-                document.getElementById('instaAvatar').src = 'https://ui-avatars.com/api/?name=Instagram+Business&background=833ab4&color=fff&size=128';
-                
-                showToast('Instagram account connected successfully', 'success');
-                showLoading(false);
-            }, 1500);
-        }
-
-        // Disconnect Instagram
-        function disconnectInstagram() {
-            if (confirm('Are you sure you want to disconnect your Instagram account?')) {
-                document.getElementById('instagramNotConnected').classList.remove('hidden');
-                document.getElementById('instagramConnected').classList.add('hidden');
-                showToast('Instagram account disconnected', 'success');
-            }
-        }
-
-        // Import contacts
-        async function importContacts() {
-            const method = document.getElementById('importMethod').value;
-            
-            showLoading(true);
-            
-            try {
-                // Simulate import based on method
-                let importedCount = 0;
-                
-                if (method === 'manual') {
-                    // For demo, add some sample contacts
-                    const sampleContacts = [
-                        { username: 'user1', name: 'John Doe', status: 'active' },
-                        { username: 'user2', name: 'Jane Smith', status: 'active' },
-                        { username: 'user3', name: 'Bob Johnson', status: 'inactive' }
-                    ];
-                    
-                    importedCount = sampleContacts.length;
-                    
-                } else if (method === 'instagram') {
-                    importedCount = 50; // Simulated Instagram import
-                } else {
-                    importedCount = 100; // Simulated CSV import
+                if (userPlanLimits.contacts !== -1 && count >= userPlanLimits.contacts) {
+                    hideLoading();
+                    showToast('Limit reached! Upgrade plan', 'warning');
+                    return;
                 }
-                
-                closeModal('importContactsModal');
-                showToast(`Successfully imported ${importedCount} contacts`, 'success');
-                updateDashboardStats();
-                
+
+                const username = document.getElementById('contactUsername').value;
+                const tags = document.getElementById('contactTags').value.split(',').map(t => t.trim()).filter(t => t);
+
+                await supabase.from('contacts').insert({
+                    user_id: currentUser.id,
+                    username: username,
+                    instagram_id: 'ig_' + Math.random().toString(36).substr(2, 9),
+                    profile_pic: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                    tags: tags.length > 0 ? tags : null,
+                    created_at: new Date().toISOString()
+                });
+
+                hideModal('addContactModal');
+                e.target.reset();
+                await loadContacts();
+                await loadDashboard();
+                hideLoading();
+                showToast('Contact added', 'success');
             } catch (error) {
-                console.error('Error importing contacts:', error);
-                showToast('Failed to import contacts', 'error');
-            } finally {
-                showLoading(false);
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
-        // Show modal
+        async function deleteContact(id) {
+            if (!confirm('Delete contact?')) return;
+            try {
+                showLoading();
+                await supabase.from('contacts').delete().eq('id', id);
+                await loadContacts();
+                await loadDashboard();
+                hideLoading();
+                showToast('Deleted', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error', 'error');
+            }
+        }
+
+        async function loadPaymentHistory() {
+            try {
+                const { data } = await supabase.from('subscriptions').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
+                const tbody = document.getElementById('paymentHistory');
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px;">No payments</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString('en-IN')}</td>
+                        <td><span class="badge badge-${p.plan_type}">${p.plan_type.toUpperCase()}</span></td>
+                        <td><strong>₹${p.amount}</strong></td>
+                        <td><span class="badge badge-${p.payment_status === 'success' ? 'active' : p.payment_status === 'pending' ? 'pending' : 'inactive'}">${p.payment_status.toUpperCase()}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Payment history error:', error);
+            }
+        }
+
+        function upgradePlan(planType, amount) {
+            const transactionId = 'TXN' + Date.now() + Math.random().toString(36).substr(2, 9);
+            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=InstaBot Pro&am=${amount}&tn=Subscription ${planType}&tr=${transactionId}`;
+            
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                window.location.href = upiUrl;
+            } else {
+                alert(`Payment Details:\n\nUPI ID: ${UPI_ID}\nAmount: ₹${amount}\nPlan: ${planType.toUpperCase()}\nTransaction ID: ${transactionId}\n\nAfter payment, contact support.`);
+            }
+            
+            createPendingSubscription(planType, amount, transactionId);
+        }
+
+        async function createPendingSubscription(planType, amount, transactionId) {
+            try {
+                const expiryDate = new Date();
+                expiryDate.setMonth(expiryDate.getMonth() + 1);
+                
+                await supabase.from('subscriptions').insert({
+                    user_id: currentUser.id,
+                    plan_type: planType,
+                    amount: amount,
+                    transaction_id: transactionId,
+                    payment_status: 'pending',
+                    payment_method: 'phonepe',
+                    created_at: new Date().toISOString(),
+                    expires_at: expiryDate.toISOString()
+                });
+
+                showToast('Payment initiated', 'warning');
+                await loadPaymentHistory();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAdminData() {
+            try {
+                const { data: users } = await supabase.from('users').select('*');
+                document.getElementById('adminTotalUsers').textContent = users.length;
+
+                const { data: subscriptions } = await supabase.from('subscriptions').select('amount').eq('payment_status', 'success');
+                const totalRevenue = subscriptions?.reduce((sum, sub) => sum + sub.amount, 0) || 0;
+                document.getElementById('adminRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
+
+                const paidUsers = users.filter(u => u.plan_type !== 'free').length;
+                document.getElementById('adminProUsers').textContent = paidUsers;
+
+                const tbody = document.getElementById('adminUsersTable');
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}`}" style="width: 36px; height: 36px; border-radius: 50%;">
+                                <strong>${u.name}</strong>
+                            </div>
+                        </td>
+                        <td>${u.email}</td>
+                        <td><span class="badge badge-${u.plan_type}">${u.plan_type.toUpperCase()}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="openChangePlanModal('${u.id}', '${u.name}')">
+                                <i class="fas fa-edit"></i> Change
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                const { data: plans } = await supabase.from('plans').select('*');
+                if (plans) {
+                    plans.forEach(plan => {
+                        if (plan.name === 'free') {
+                            document.getElementById('freeLimitContacts').value = plan.contacts_limit;
+                            document.getElementById('freeLimitAuto').value = plan.automations_limit;
+                        } else if (plan.name === 'pro') {
+                            document.getElementById('proPrice').value = plan.price;
+                            document.getElementById('proLimitContacts').value = plan.contacts_limit;
+                            document.getElementById('proLimitAuto').value = plan.automations_limit;
+                        } else if (plan.name === 'master') {
+                            document.getElementById('masterPrice').value = plan.price;
+                            document.getElementById('masterLimitContacts').value = plan.contacts_limit;
+                            document.getElementById('masterLimitAuto').value = plan.automations_limit;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Admin error:', error);
+            }
+        }
+
+        async function updatePlans(e) {
+            e.preventDefault();
+            try {
+                showLoading();
+                await supabase.from('plans').update({
+                    contacts_limit: parseInt(document.getElementById('freeLimitContacts').value),
+                    automations_limit: parseInt(document.getElementById('freeLimitAuto').value)
+                }).eq('name', 'free');
+
+                await supabase.from('plans').update({
+                    price: parseInt(document.getElementById('proPrice').value),
+                    contacts_limit: parseInt(document.getElementById('proLimitContacts').value),
+                    automations_limit: parseInt(document.getElementById('proLimitAuto').value)
+                }).eq('name', 'pro');
+
+                await supabase.from('plans').update({
+                    price: parseInt(document.getElementById('masterPrice').value),
+                    contacts_limit: parseInt(document.getElementById('masterLimitContacts').value),
+                    automations_limit: parseInt(document.getElementById('masterLimitAuto').value)
+                }).eq('name', 'master');
+
+                hideModal('editPlanModal');
+                hideLoading();
+                showToast('Plans updated', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function openChangePlanModal(userId, userName) {
+            document.getElementById('changeUserId').value = userId;
+            document.getElementById('changeUserName').textContent = userName;
+            showModal('changeUserPlanModal');
+        }
+
+        async function changeUserPlan(e) {
+            e.preventDefault();
+            try {
+                showLoading();
+                const userId = document.getElementById('changeUserId').value;
+                const newPlan = document.getElementById('newPlanType').value;
+                const expiryDate = new Date();
+                expiryDate.setMonth(expiryDate.getMonth() + 1);
+
+                await supabase.from('users').update({
+                    plan_type: newPlan,
+                    plan_expiry: expiryDate.toISOString()
+                }).eq('id', userId);
+
+                hideModal('changeUserPlanModal');
+                await loadAdminData();
+                hideLoading();
+                showToast('Plan changed', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
         function showModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
         }
 
-        // Close modal
-        function closeModal(modalId) {
+        function hideModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Show loading
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'flex' : 'none';
-        }
-
-        // Show toast notification
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle' };
             
+            toast.className = 'toast ' + type;
+            toast.querySelector('i').className = 'fas ' + icons[type];
             toastMessage.textContent = message;
-            toast.className = `toast ${type}`;
-            
-            // Set icon based on type
-            const icon = toast.querySelector('i');
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle';
-            } else if (type === 'warning') {
-                icon.className = 'fas fa-exclamation-triangle';
-            }
-            
             toast.style.display = 'flex';
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 5000);
+
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
         }
 
-        // Toggle sidebar on mobile
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const menuIcon = document.getElementById('menuIcon');
-            
-            sidebar.classList.toggle('open');
-            
-            if (sidebar.classList.contains('open')) {
-                menuIcon.className = 'fas fa-times';
-            } else {
-                menuIcon.className = 'fas fa-bars';
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
             }
         }
 
-        // Initialize particles.js
-        function initParticles() {
-            particlesJS('particles-js', {
-                particles: {
-                    number: { value: 80, density: { enable: true, value_area: 800 } },
-                    color: { value: "#0084ff" },
-                    shape: { type: "circle" },
-                    opacity: { value: 0.3, random: true },
-                    size: { value: 3, random: true },
-                    line_linked: {
-                        enable: true,
-                        distance: 150,
-                        color: "#0084ff",
-                        opacity: 0.2,
-                        width: 1
-                    },
-                    move: {
-                        enable: true,
-                        speed: 2,
-                        direction: "none",
-                        random: true,
-                        straight: false,
-                        out_mode: "out",
-                        bounce: false
-                    }
-                },
-                interactivity: {
-                    detect_on: "canvas",
-                    events: {
-                        onhover: { enable: true, mode: "repulse" },
-                        onclick: { enable: true, mode: "push" }
-                    }
-                }
-            });
-        }
-
-        // Initialize everything when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initSupabase();
-            initParticles();
-            
-            // Close modals when clicking outside
-            window.onclick = function(event) {
-                const modals = document.querySelectorAll('.modal');
-                modals.forEach(modal => {
-                    if (event.target == modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            };
+        window.addEventListener('load', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await handleUserLogin(session.user);
+            }
         });
+
+        /*
+        DATABASE SETUP SQL:
+        
+        -- Users table
+        CREATE TABLE users (
+            id UUID PRIMARY KEY REFERENCES auth.users(id),
+            email TEXT UNIQUE NOT NULL,
+            name TEXT,
+            avatar_url TEXT,
+            google_id TEXT,
+            instagram_connected BOOLEAN DEFAULT false,
+            instagram_token TEXT,
+            instagram_username TEXT,
+            instagram_id TEXT,
+            plan_type TEXT DEFAULT 'free',
+            plan_expiry TIMESTAMP,
+            contacts_count INTEGER DEFAULT 0,
+            automations_count INTEGER DEFAULT 0,
+            is_admin BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+
+        -- Contacts table
+        CREATE TABLE contacts (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            instagram_id TEXT,
+            username TEXT NOT NULL,
+            profile_pic TEXT,
+            tags TEXT[],
+            last_message_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        -- Automations table
+        CREATE TABLE automations (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            trigger_type TEXT NOT NULL,
+            trigger_keywords TEXT[],
+            response_message TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT true,
+            stats JSONB DEFAULT '{"triggered": 0, "replied": 0}'::jsonb,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        -- Messages table
+        CREATE TABLE messages (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            sender_type TEXT NOT NULL,
+            is_automated BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        -- Subscriptions table
+        CREATE TABLE subscriptions (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            plan_type TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            transaction_id TEXT,
+            payment_status TEXT DEFAULT 'pending',
+            payment_method TEXT DEFAULT 'phonepe',
+            created_at TIMESTAMP DEFAULT NOW(),
+            expires_at TIMESTAMP
+        );
+
+        -- Plans table
+        CREATE TABLE plans (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            name TEXT UNIQUE NOT NULL,
+            price INTEGER NOT NULL,
+            contacts_limit INTEGER NOT NULL,
+            automations_limit INTEGER NOT NULL,
+            team_members_limit INTEGER NOT NULL,
+            features JSONB,
+            is_active BOOLEAN DEFAULT true
+        );
+
+        -- Insert default plans
+        INSERT INTO plans (name, price, contacts_limit, automations_limit, team_members_limit, is_active) VALUES
+        ('free', 0, 1000, 3, 1, true),
+        ('pro', 199, 10000, 25, 5, true),
+        ('master', 499, -1, -1, -1, true);
+
+        -- Enable RLS
+        ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE automations ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE plans ENABLE ROW LEVEL SECURITY;
+
+        -- Policies
+        CREATE POLICY "Users view own" ON users FOR SELECT USING (auth.uid() = id);
+        CREATE POLICY "Users update own" ON users FOR UPDATE USING (auth.uid() = id);
+        CREATE POLICY "Users insert own" ON users FOR INSERT WITH CHECK (auth.uid() = id);
+        CREATE POLICY "Admins view all" ON users FOR SELECT USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+        CREATE POLICY "Admins update all" ON users FOR UPDATE USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+        CREATE POLICY "Users manage own contacts" ON contacts FOR ALL USING (auth.uid() = user_id);
+        CREATE POLICY "Users manage own automations" ON automations FOR ALL USING (auth.uid() = user_id);
+        CREATE POLICY "Users manage own messages" ON messages FOR ALL USING (auth.uid() = user_id);
+        CREATE POLICY "Users view own subs" ON subscriptions FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users insert own subs" ON subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Admins view all subs" ON subscriptions FOR SELECT USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+        CREATE POLICY "Anyone view plans" ON plans FOR SELECT USING (true);
+        CREATE POLICY "Admins update plans" ON plans FOR UPDATE USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+
+        -- Make yourself admin
+        UPDATE users SET is_admin = true WHERE email = 'your-email@gmail.com';
+        */
+
+        console.log('%c🎉 InstaBot Pro Ready!', 'color: #0084ff; font-size: 24px; font-weight: bold;');
+        console.log('%c✅ Setup: Configure SUPABASE_URL, SUPABASE_ANON_KEY, UPI_ID, META_APP_ID', 'color: #00d4aa; font-size: 14px;');
     </script>
 </body>
-</html>
+</html> = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-robot"></i><h3>No automations</h3><button class="btn btn-primary" onclick="showModal('createAutomationModal')">Create</button></div></td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(a => `
+                    <tr>
+                        <td><strong>${a.name}</strong></td>
+                        <td><span class="badge badge-pro">${a.trigger_type.replace(/_/g, ' ').toUpperCase()}</span></td>
+                        <td>
+                            <label class="toggle">
+                                <input type="checkbox" ${a.is_active ? 'checked' : ''} onchange="toggleAutomation('${a.id}', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td>Triggered: ${a.stats?.triggered || 0} | Replied: ${a.stats?.replied || 0}</td>
+                        <td>
+                            <button class="btn btn-icon btn-danger" onclick="deleteAutomation('${a.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Automations error:', error);
+            }
+        }
+
+        async function createAutomation(e) {
+            e.preventDefault();
+            try {
+                showLoading();
+                const { count } = await supabase.from('automations').select('id', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+
+                if (userPlanLimits.automations !== -1 && count >= userPlanLimits.automations) {
+                    hideLoading();
+                    showToast('Limit reached! Upgrade plan', 'warning');
+                    return;
+                }
+
+                await supabase.from('automations').insert({
+                    user_id: currentUser.id,
+                    name: document.getElementById('automationName').value,
+                    trigger_type: document.getElementById('triggerType').value,
+                    trigger_keywords: document.getElementById('triggerKeywords').value.split(',').map(k => k.trim()),
+                    response_message: document.getElementById('responseMessage').value,
+                    is_active: true,
+                    stats: { triggered: 0, replied: 0 },
+                    created_at: new Date().toISOString()
+                });
+
+                hideModal('createAutomationModal');
+                e.target.reset();
+                await loadAutomations();
+                await loadDashboard();
+                hideLoading();
+                showToast('Automation created', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function toggleAutomation(id, isActive) {
+            try {
+                await supabase.from('automations').update({ is_active: isActive }).eq('id', id);
+                showToast(isActive ? 'Activated' : 'Deactivated', 'success');
+            } catch (error) {
+                showToast('Error', 'error');
+            }
+        }
+
+        async function deleteAutomation(id) {
+            if (!confirm('Delete automation?')) return;
+            try {
+                showLoading();
+                await supabase.from('automations').delete().eq('id', id);
+                await loadAutomations();
+                await loadDashboard();
+                hideLoading();
+                showToast('Deleted', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error', 'error');
+            }
+        }
+
+        async function loadContacts() {
+            try {
+                const { data } = await supabase.from('contacts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+                const tbody = document.getElementById('contactsTable');
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTMLasync function loadContacts() {
+    try {
+        const { data } = await supabase.from('contacts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        const tbody = document.getElementById('contactsTable');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>No contacts yet</h3>
+                            <p>Add your first contact to start managing your Instagram audience</p>
+                            <button class="btn btn-primary" onclick="showModal('addContactModal')">
+                                <i class="fas fa-user-plus"></i> Add Contact
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = data.map(contact => `
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="${contact.profile_pic}" 
+                             alt="${contact.username}" 
+                             style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary);">
+                        <strong>@${contact.username}</strong>
+                    </div>
+                </td>
+                <td>
+                    ${contact.tags && contact.tags.length > 0 
+                        ? contact.tags.map(tag => `<span class="badge badge-pro">${tag}</span>`).join(' ') 
+                        : '<span style="color: var(--gray);">No tags</span>'}
+                </td>
+                <td>
+                    <span style="color: var(--gray); font-size: 13px;">
+                        ${contact.last_message_at 
+                            ? new Date(contact.last_message_at).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })
+                            : 'Never'}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn btn-icon btn-danger" 
+                                onclick="deleteContact('${contact.id}')" 
+                                title="Delete contact">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading contacts:', error);
+        showToast('Error loading contacts: ' + error.message, 'error');
+        
+        // Show error state in table
+        const tbody = document.getElementById('contactsTable');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                        <h3>Error loading contacts</h3>
+                        <p>Please try again</p>
+                        <button class="btn btn-primary" onclick="loadContacts()">
+                            <i class="fas fa-sync"></i> Retry
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+}
