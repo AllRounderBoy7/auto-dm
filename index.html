@@ -3,1133 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InstaBot Pro - Instagram Automation SaaS</title>
-    
-    <!-- Google Fonts -->
+    <title>FormBuilder - Premium Typeform Clone</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* All your CSS styles remain the same - they are correct */
-        /* ... (keeping all your existing CSS) ... */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1; --secondary: #8b5cf6; --success: #10b981;
+            --danger: #ef4444; --warning: #f59e0b; --dark: #0f172a;
+            --gray: #64748b; --white: #ffffff;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: var(--dark); overflow-x: hidden;
+        }
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .bg-animation::before {
+            content: ''; position: absolute; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px; animation: moveBackground 20s linear infinite;
+        }
+        @keyframes moveBackground { 0% { transform: translate(0, 0); } 100% { transform: translate(-50px, -50px); } }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); padding: 40px; transition: 0.3s;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: white;
+        }
+        .btn {
+            padding: 12px 24px; border-radius: 12px; border: none; font-weight: 600;
+            cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: var(--dark); }
+
+        .auth-section { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .hidden { display: none !important; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin: 30px 0; }
+        
+        .question-input, select, input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0;
+            font-size: 16px; margin-bottom: 15px; outline: none; transition: 0.3s;
+        }
+        .question-input:focus { border-color: var(--primary); }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+            display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);
+        }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 40px; border-radius: 24px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+
+        .subscription-badge {
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        
+        /* Typeform Player Style */
+        #formPlayerSection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; display: none; background: white; }
+        #formPlayerSection.active { display: block; }
+        .player-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .progress-bar { position: fixed; bottom: 0; left: 0; height: 8px; background: var(--success); transition: 0.3s; }
     </style>
 </head>
 <body>
-    <!-- 🔄 Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loader"></div>
-        <div class="loading-text">Loading InstaBot Pro...</div>
-    </div>
+    <div class="bg-animation"></div>
 
-    <!-- ============================================
-     🏠 LANDING PAGE
-     ============================================ -->
-    <div class="landing-page" id="landingPage">
-        <!-- Navigation -->
-        <nav class="navbar" aria-label="Main navigation">
-            <div class="logo">
-                <i class="fab fa-instagram" aria-hidden="true"></i>
-                <span class="logo-text">InstaBot Pro</span>
-            </div>
-            
-            <ul class="nav-links">
-                <li><a href="#features" class="nav-link">Features</a></li>
-                <li><a href="#pricing" class="nav-link">Pricing</a></li>
-                <li><a href="#faq" class="nav-link">FAQ</a></li>
-                <li><a href="#contact" class="nav-link">Contact</a></li>
-            </ul>
-            
-            <div class="nav-buttons">
-                <!-- FIXED: Changed onclick to call showAuthModal() instead of loginWithGoogle() -->
-                <button class="btn btn-secondary" onclick="showAuthModal()" aria-label="Login to account">
-                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> 
-                    <span class="btn-text">Login</span>
-                </button>
-                <button class="btn btn-primary" onclick="showAuthModal()" aria-label="Get started for free">
-                    <span class="btn-text">Get Started Free</span>
+    <div id="mainUI">
+        <div class="header">
+            <h2 style="font-weight: 800; cursor: pointer;" onclick="location.reload()">📝 FormBuilder</h2>
+            <div id="headerButtons"></div>
+        </div>
+
+        <!-- Auth -->
+        <div id="authSection" class="auth-section">
+            <div class="glass-card" style="text-align: center; width: 400px;">
+                <h1 style="margin-bottom: 10px;">Welcome</h1>
+                <p style="color: var(--gray); margin-bottom: 30px;">Build beautiful forms in minutes.</p>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="signInWithGoogle()">
+                    Sign in with Google
                 </button>
             </div>
-        </nav>
+        </div>
 
-        <!-- Hero Section -->
-        <section class="hero" aria-labelledby="hero-title">
-            <div class="hero-content">
-                <h1 id="hero-title" class="hero-title">
-                    <span class="hero-emoji" aria-label="rocket">🚀</span>
-                    Grow Your Instagram on Autopilot
-                </h1>
-                <p class="hero-description">
-                    Automate your Instagram growth with AI-powered engagement. Get more followers, likes, and engagement without spending hours on your phone.
-                </p>
-                
-                <div class="hero-actions">
-                    <!-- FIXED: Added onclick handler -->
-                    <button class="btn btn-lg btn-google" onclick="signInWithGoogle()">
-                        <i class="fab fa-google" aria-hidden="true"></i> 
-                        <span>Continue with Google</span>
-                    </button>
-                    <button class="btn btn-lg btn-outline" onclick="scrollToSection('pricing')">
-                        <span>View Pricing</span>
-                    </button>
+        <!-- Dashboard -->
+        <div id="dashboardSection" class="container hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; color: white;">
+                <div>
+                    <h1 id="welcomeUser">Hello!</h1>
+                    <span id="subLabel" class="subscription-badge">FREE</span>
                 </div>
-                
-                <div class="hero-stats" role="region" aria-label="Statistics">
-                    <div class="stat-item">
-                        <div class="stat-number" aria-label="50 thousand plus">50K+</div>
-                        <div class="stat-label">Active Users</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" aria-label="10 million plus">10M+</div>
-                        <div class="stat-label">Actions Performed</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" aria-label="99.9 percent">99.9%</div>
-                        <div class="stat-label">Uptime</div>
-                    </div>
-                </div>
+                <button class="btn btn-secondary" onclick="signOut()">Logout</button>
             </div>
-        </section>
 
-        <!-- Features Section -->
-        <section id="features" class="features-section" aria-labelledby="features-title">
-            <div class="section-title">
-                <h2 id="features-title">
-                    <span class="section-icon" aria-label="lightning">⚡</span>
-                    Powerful Features
-                </h2>
-                <p class="section-subtitle">Everything you need to grow your Instagram presence</p>
+            <div class="grid">
+                <div class="glass-card">
+                    <h3>Total Forms</h3>
+                    <h2 id="countForms" style="font-size: 40px; color: var(--primary);">0</h2>
+                </div>
+                <div class="glass-card">
+                    <h3>Responses</h3>
+                    <h2 id="countResponses" style="font-size: 40px; color: var(--success);">0</h2>
+                </div>
             </div>
-            
-            <div class="features-grid">
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-1" aria-hidden="true">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3 class="feature-title">Auto Follow/Unfollow</h3>
-                    <p class="feature-description">Automatically follow targeted users and unfollow non-followers to grow your audience.</p>
-                </article>
-                
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-2" aria-hidden="true">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <h3 class="feature-title">Smart Liking</h3>
-                    <p class="feature-description">Like posts from your target audience to increase visibility and engagement.</p>
-                </article>
-                
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-3" aria-hidden="true">
-                        <i class="fas fa-comment"></i>
-                    </div>
-                    <h3 class="feature-title">Auto Comments</h3>
-                    <p class="feature-description">Leave meaningful comments using AI to engage with your community.</p>
-                </article>
-                
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-4" aria-hidden="true">
-                        <i class="fas fa-paper-plane"></i>
-                    </div>
-                    <h3 class="feature-title">Auto DM</h3>
-                    <p class="feature-description">Send personalized welcome messages to new followers automatically.</p>
-                </article>
-                
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-5" aria-hidden="true">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">Analytics Dashboard</h3>
-                    <p class="feature-description">Track your growth with detailed analytics and insights.</p>
-                </article>
-                
-                <article class="feature-card">
-                    <div class="feature-icon feature-icon-6" aria-hidden="true">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 class="feature-title">Safe & Secure</h3>
-                    <p class="feature-description">Human-like behavior patterns to keep your account safe.</p>
-                </article>
-            </div>
-        </section>
 
-        <!-- Pricing Section -->
-        <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
-            <div class="section-title">
-                <h2 id="pricing-title">
-                    <span class="section-icon" aria-label="gem">💎</span>
-                    Choose Your Plan
-                </h2>
-                <p class="section-subtitle">Start free and upgrade as you grow</p>
+            <div style="margin-bottom: 30px; display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="openBuilder()">+ New Form</button>
+                <button class="btn btn-warning" onclick="openPayment()">Upgrade Plan</button>
             </div>
-            
-            <div class="pricing-grid" id="pricingGrid" role="region" aria-label="Pricing plans">
-                <!-- Plans will be loaded dynamically -->
-                <div class="pricing-loading">
-                    <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                    <span class="sr-only">Loading pricing plans...</span>
-                </div>
-            </div>
-        </section>
 
-        <!-- FAQ Section -->
-        <section id="faq" class="faq-section" aria-labelledby="faq-title">
-            <div class="section-title">
-                <h2 id="faq-title">
-                    <span class="section-icon" aria-label="question mark">❓</span>
-                    Frequently Asked Questions
-                </h2>
-                <p class="section-subtitle">Got questions? We've got answers</p>
-            </div>
-            
-            <div class="faq-container">
-                <details class="faq-item">
-                    <summary class="faq-question">
-                        <span>Is InstaBot Pro safe to use?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        <p>Yes! We use human-like behavior patterns and respect Instagram's rate limits. Our bot mimics natural user behavior to keep your account safe.</p>
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary class="faq-question">
-                        <span>How does payment verification work?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        <p>After making a UPI payment, our admin team manually verifies your payment within 24 hours. You'll receive an email once your subscription is activated.</p>
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary class="faq-question">
-                        <span>Can I cancel my subscription anytime?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        <p>Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.</p>
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary class="faq-question">
-                        <span>How many Instagram accounts can I connect?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        <p>Free plan: 1 account, Pro plan: 5 accounts, Master plan: Unlimited accounts.</p>
-                    </div>
-                </details>
-            </div>
-        </section>
+            <div id="formsList"></div>
+        </div>
 
-        <!-- Footer -->
-        <footer class="main-footer" aria-label="Footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="footer-logo">
-                        <i class="fab fa-instagram" aria-hidden="true"></i>
-                        <span class="footer-logo-text">InstaBot Pro</span>
-                    </div>
-                    <p class="footer-description">Automate your Instagram growth with the most powerful and safest bot on the market.</p>
-                </div>
+        <!-- Admin -->
+        <div id="adminSection" class="container hidden">
+            <div class="glass-card" style="margin-top: 40px; background: #0f172a; color: white;">
+                <h1 style="color: var(--warning); margin-bottom: 30px;">🔐 God Mode Admin</h1>
                 
-                <div class="footer-section">
-                    <h4 class="footer-heading">Quick Links</h4>
-                    <ul class="footer-links">
-                        <li><a href="#features" class="footer-link">Features</a></li>
-                        <li><a href="#pricing" class="footer-link">Pricing</a></li>
-                        <li><a href="#faq" class="footer-link">FAQ</a></li>
-                    </ul>
+                <div style="margin-bottom: 40px;">
+                    <h3>Pending Payments</h3>
+                    <div id="adminPayments"></div>
                 </div>
-                
-                <div class="footer-section">
-                    <h4 class="footer-heading">Legal</h4>
-                    <ul class="footer-links">
-                        <li><a href="#privacy-policy" class="footer-link">Privacy Policy</a></li>
-                        <li><a href="#terms" class="footer-link">Terms of Service</a></li>
-                        <li><a href="#refund" class="footer-link">Refund Policy</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4 class="footer-heading">Contact</h4>
-                    <address class="footer-contact">
-                        <p class="contact-item">
-                            <i class="fas fa-envelope" aria-hidden="true"></i>
-                            <a href="mailto:support@instabotpro.com" class="contact-link">support@instabotpro.com</a>
-                        </p>
-                        <p class="contact-item">
-                            <i class="fab fa-telegram" aria-hidden="true"></i>
-                            <a href="https://t.me/instabotpro" class="contact-link">@instabotpro</a>
-                        </p>
-                    </address>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p class="copyright">&copy; <span id="current-year">2024</span> InstaBot Pro. All rights reserved.</p>
-            </div>
-        </footer>
-    </div>
 
-    <!-- ============================================
-     🔐 AUTH MODAL
-     ============================================ -->
-    <div class="auth-modal" id="authModal" aria-hidden="true" aria-labelledby="auth-modal-title">
-        <div class="auth-box">
-            <!-- FIXED: Added onclick handler -->
-            <button class="modal-close" onclick="closeAuthModal()" aria-label="Close authentication modal">
-                <i class="fas fa-times" aria-hidden="true"></i>
-            </button>
-            
-            <div class="auth-header">
-                <i class="fab fa-instagram auth-logo" aria-hidden="true"></i>
-                <h2 id="auth-modal-title" class="auth-title">Welcome to InstaBot Pro</h2>
-                <p class="auth-subtitle">Sign in to access your dashboard</p>
-            </div>
-            
-            <div class="auth-body">
-                <!-- FIXED: Added onclick handler -->
-                <button class="btn btn-google btn-lg auth-button" onclick="signInWithGoogle()">
-                    <img src="https://www.google.com/favicon.ico" alt="" class="google-icon">
-                    <span>Continue with Google</span>
-                </button>
-                
-                <div class="auth-divider" aria-hidden="true">
-                    <span>or</span>
+                <div style="margin-bottom: 40px;">
+                    <h3>All Users</h3>
+                    <div id="adminUsers" style="overflow-x: auto;"></div>
                 </div>
-                
-                <p class="auth-terms">
-                    By signing in, you agree to our 
-                    <a href="#terms" class="terms-link">Terms of Service</a> and 
-                    <a href="#privacy" class="terms-link">Privacy Policy</a>.
-                </p>
+
+                <div>
+                    <h3>Direct Sub Change</h3>
+                    <div style="display: flex; gap: 10px; margin-top:10px;">
+                        <input type="text" id="adminTargetId" placeholder="User ID" style="background: rgba(255,255,255,0.1); color: white;">
+                        <select id="adminSubLevel" style="background: rgba(255,255,255,0.1); color: white; width: 200px;">
+                            <option value="free">Free</option>
+                            <option value="basic">Basic</option>
+                            <option value="pro">Pro</option>
+                            <option value="god">God</option>
+                        </select>
+                        <button class="btn btn-success" onclick="adminFastSub()" style="height: 50px;">Update</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================
-     💳 PAYMENT MODAL
-     ============================================ -->
-    <div class="payment-modal" id="paymentModal" aria-hidden="true" aria-labelledby="payment-modal-title">
-        <div class="payment-box">
-            <div class="payment-header">
-                <h2 id="payment-modal-title" class="payment-title">
-                    <span class="payment-icon" aria-hidden="true">💳</span>
-                    Complete Payment
-                </h2>
-                <p id="paymentPlanName" class="payment-plan">Pro Plan - ₹199/month</p>
-            </div>
-            
-            <div class="payment-body">
-                <div class="qr-container">
-                    <div class="qr-code" id="qrCode" role="img" aria-label="QR code for payment">
-                        <!-- QR Code will be generated here -->
-                        <div class="qr-placeholder">
-                            <i class="fas fa-qrcode" aria-hidden="true"></i>
-                            <span class="sr-only">QR Code Placeholder</span>
-                        </div>
-                    </div>
-                    
-                    <p class="qr-instruction">Scan QR code or pay to UPI ID below</p>
-                    
-                    <div class="upi-id">
-                        <span id="upiIdDisplay" class="upi-text">Loading UPI ID...</span>
-                        <!-- FIXED: Added onclick handler -->
-                        <button class="copy-btn" onclick="copyUpiId()" aria-label="Copy UPI ID to clipboard">
-                            <i class="fas fa-copy" aria-hidden="true"></i> 
-                            <span class="copy-text">Copy</span>
-                        </button>
-                    </div>
-                </div>
+    <!-- Form Player -->
+    <div id="formPlayerSection">
+        <div class="player-container">
+            <div id="playerQuestion" style="max-width: 600px; width: 100%; text-align: left;"></div>
+        </div>
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
 
-                <form class="payment-form" id="paymentForm" onsubmit="submitPayment(event)">
-                    <div class="form-group">
-                        <label for="transactionId" class="form-label">Transaction ID / UTR Number *</label>
-                        <input type="text" id="transactionId" class="form-input" 
-                               placeholder="Enter 12-digit UTR number" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="amountPaid" class="form-label">Amount Paid (₹) *</label>
-                        <input type="number" id="amountPaid" class="form-input" 
-                               placeholder="Enter amount paid" required>
-                    </div>
-
-                    <div class="alert alert-info" role="alert">
-                        <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        <span>Payment will be verified manually within 24 hours. You'll receive an email once verified.</span>
-                    </div>
-
-                    <div class="payment-steps">
-                        <div class="payment-step">
-                            <div class="step-number" aria-hidden="true">1</div>
-                            <div class="step-text">Open any UPI app (GPay, PhonePe, Paytm, etc.)</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number" aria-hidden="true">2</div>
-                            <div class="step-text">Scan QR code or pay to the UPI ID shown above</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number" aria-hidden="true">3</div>
-                            <div class="step-text">Enter the transaction ID after successful payment</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number" aria-hidden="true">4</div>
-                            <div class="step-text">Wait for admin verification (usually within 24 hours)</div>
-                        </div>
-                    </div>
-
-                    <div class="payment-actions">
-                        <!-- FIXED: Added onclick handler -->
-                        <button type="button" class="btn btn-secondary payment-cancel" onclick="closePaymentModal()">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary payment-submit" id="submitPaymentBtn">
-                            <i class="fas fa-check" aria-hidden="true"></i>
-                            <span>Submit Payment</span>
-                        </button>
-                    </div>
-                </form>
+    <!-- Multi-use Modals -->
+    <div id="modalBuilder" class="modal">
+        <div class="modal-content">
+            <h2>New Form</h2>
+            <input type="text" id="formTitle" placeholder="Form Title" style="margin-top:20px;">
+            <div id="builderQuestions"></div>
+            <button class="btn btn-secondary" onclick="addQuestionRaw()" style="width: 100%; margin-bottom: 10px;">+ Add Question</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" style="flex:1" onclick="saveForm()">Save</button>
+                <button class="btn btn-danger" onclick="closeModals()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- ============================================
-     📊 USER DASHBOARD
-     ============================================ -->
-    <div class="dashboard-container" id="userDashboard">
-        <!-- Dashboard HTML remains the same -->
-        <!-- ... (keeping your dashboard HTML) ... -->
-    </div>
-
-    <!-- ============================================
-     🛡️ ADMIN DASHBOARD
-     ============================================ -->
-    <div class="dashboard-container" id="adminDashboard">
-        <!-- Admin dashboard HTML remains the same -->
-        <!-- ... (keeping your admin dashboard HTML) ... -->
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast-notification" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-content">
-            <i id="toastIcon" class="fas fa-check-circle toast-icon" aria-hidden="true"></i>
-            <span id="toastMessage" class="toast-message">Success!</span>
+    <div id="modalPayment" class="modal">
+        <div class="modal-content">
+            <h2>Upgrade Plan</h2>
+            <p style="margin: 15px 0;">Transfer amount to <b>admin@upi</b> and paste Transaction ID below.</p>
+            <select id="payPlan">
+                <option value="basic">Basic - ₹299</option>
+                <option value="pro">Pro - ₹599</option>
+            </select>
+            <input type="text" id="payTx" placeholder="Transaction ID">
+            <button class="btn btn-success" style="width: 100%" onclick="submitPayment()">Submit for Approval</button>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="closeModals()">Back</button>
         </div>
     </div>
 
-    <!-- ============================================
-         📜 JAVASCRIPT - CORE CONFIGURATION
-         ============================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ============================================
-        // 🔑 API CONFIGURATION
-        // ============================================
         const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
-        
-        const DEFAULT_UPI_ID = '7321086174@naviaxis';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // FIXED: Use a unique variable name to avoid conflict
-        let supabase = null;
-
-        // ============================================
-        // 🌐 GLOBAL STATE
-        // ============================================
         let currentUser = null;
-        let currentUserProfile = null;
-        let currentSubscription = null;
-        let isAdmin = false;
-        let isGodAdmin = false;
-        let allPlans = [];
-        let appSettings = {};
-        let selectedPlanForPayment = null;
-
-        // ============================================
-        // 🚀 APP INITIALIZATION
-        // ============================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 InstaBot Pro Initializing...');
-            
-            try {
-                // Initialize Supabase
-                if (window.supabase && window.supabase.createClient) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                } else {
-                    console.error('Supabase SDK not loaded');
-                    return;
-                }
-                
-                // Load app settings
-                await loadAppSettings();
-                
-                // Check for existing session
-                const { data: { session } } = await supabase.auth.getSession();
-                
-                if (session) {
-                    await handleUserSession(session);
-                } else {
-                    showLandingPage();
-                }
-
-                // Load plans for landing page
-                await loadPlans();
-
-                // Update current year in footer
-                const currentYear = document.getElementById('current-year');
-                if (currentYear) {
-                    currentYear.textContent = new Date().getFullYear();
-                }
-
-                // Hide loading screen
-                setTimeout(() => {
-                    const loadingScreen = document.getElementById('loadingScreen');
-                    if (loadingScreen) {
-                        loadingScreen.classList.add('hidden');
-                    }
-                }, 1000);
-
-                // Listen for auth changes
-                supabase.auth.onAuthStateChange(async (event, session) => {
-                    console.log('Auth state changed:', event);
-                    if (event === 'SIGNED_IN' && session) {
-                        await handleUserSession(session);
-                    } else if (event === 'SIGNED_OUT') {
-                        currentUser = null;
-                        currentUserProfile = null;
-                        showLandingPage();
-                    }
-                });
-
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showToast('Failed to initialize app', 'error');
-            }
-        });
-
-        // ============================================
-        // 🔐 AUTHENTICATION FUNCTIONS
-        // ============================================
-        
-        async function signInWithGoogle() {
-            try {
-                showToast('Redirecting to Google...', 'info');
-                
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin
-                    }
-                });
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Google sign in error:', error);
-                showToast('Failed to sign in with Google', 'error');
-            }
-        }
-
-        // FIXED: Added missing loginWithGoogle function for backward compatibility
-        window.loginWithGoogle = signInWithGoogle;
-
-        async function signOut() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                
-                currentUser = null;
-                currentUserProfile = null;
-                isAdmin = false;
-                isGodAdmin = false;
-                
-                showLandingPage();
-                showToast('Signed out successfully', 'success');
-            } catch (error) {
-                console.error('Sign out error:', error);
-                showToast('Failed to sign out', 'error');
-            }
-        }
-
-        async function handleUserSession(session) {
-            try {
-                currentUser = session.user;
-                console.log('User logged in:', currentUser.email);
-
-                // Get or create user profile
-                await loadUserProfile();
-
-                // Check admin status
-                isAdmin = currentUserProfile?.is_admin || false;
-                isGodAdmin = currentUserProfile?.is_god_admin || false;
-
-                // Close auth modal if open
-                closeAuthModal();
-
-                // Load user's subscription
-                await loadUserSubscription();
-
-                // Setup realtime subscriptions
-                setupRealtimeSubscriptions();
-
-                // Show appropriate dashboard
-                if (isAdmin) {
-                    showAdminDashboard();
-                } else {
-                    showUserDashboard();
-                }
-            } catch (error) {
-                console.error('Session handling error:', error);
-                showToast('Failed to load user session', 'error');
-            }
-        }
-
-        async function loadUserProfile() {
-            try {
-                // First try to get existing profile
-                let { data: profile, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (error && error.code === 'PGRST116') {
-                    // Profile doesn't exist, create it
-                    const { data: newProfile, error: createError } = await supabase
-                        .from('users')
-                        .insert({
-                            id: currentUser.id,
-                            email: currentUser.email,
-                            full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '',
-                            avatar_url: currentUser.user_metadata?.avatar_url || ''
-                        })
-                        .select()
-                        .single();
-
-                    if (createError) throw createError;
-                    profile = newProfile;
-                } else if (error) {
-                    throw error;
-                }
-
-                currentUserProfile = profile;
-                return profile;
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                // Create minimal profile object
-                currentUserProfile = {
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    full_name: currentUser.user_metadata?.full_name || '',
-                    avatar_url: currentUser.user_metadata?.avatar_url || '',
-                    is_admin: false,
-                    is_god_admin: false
-                };
-                return currentUserProfile;
-            }
-        }
-
-        async function loadUserSubscription() {
-            try {
-                const { data, error } = await supabase
-                    .from('subscriptions')
-                    .select(`
-                        *,
-                        plan:plans(*)
-                    `)
-                    .eq('user_id', currentUser.id)
-                    .eq('status', 'active')
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') {
-                    throw error;
-                }
-
-                currentSubscription = data;
-                return data;
-            } catch (error) {
-                console.error('Error loading subscription:', error);
-                currentSubscription = null;
-                return null;
-            }
-        }
-
-        // ============================================
-        // 📊 DATA LOADING FUNCTIONS
-        // ============================================
-
-        async function loadAppSettings() {
-            try {
-                const { data, error } = await supabase
-                    .from('settings')
-                    .select('*');
-
-                if (error) throw error;
-
-                appSettings = {};
-                if (data) {
-                    data.forEach(setting => {
-                        try {
-                            appSettings[setting.key] = JSON.parse(setting.value);
-                        } catch (e) {
-                            appSettings[setting.key] = setting.value;
-                        }
-                    });
-                }
-
-                // Update UPI ID display
-                const upiDisplay = document.getElementById('upiIdDisplay');
-                if (upiDisplay) {
-                    upiDisplay.textContent = (appSettings.upi_id || DEFAULT_UPI_ID).replace(/"/g, '');
-                }
-
-            } catch (error) {
-                console.error('Error loading settings:', error);
-                appSettings = {
-                    upi_id: DEFAULT_UPI_ID,
-                    site_name: 'InstaBot Pro',
-                    maintenance_mode: false,
-                    registration_enabled: true
-                };
-            }
-        }
-
-        async function loadPlans() {
-            try {
-                const { data, error } = await supabase
-                    .from('plans')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('sort_order');
-
-                if (error) throw error;
-
-                allPlans = data || [];
-                renderPricingCards();
-            } catch (error) {
-                console.error('Error loading plans:', error);
-                // Use default plans
-                allPlans = [
-                    { id: '1', name: 'Free', slug: 'free', price: 0, features: ['1 Instagram Account', '100 Actions/Day'], limits: { accounts: 1 } },
-                    { id: '2', name: 'Pro', slug: 'pro', price: 199, features: ['5 Instagram Accounts', '1000 Actions/Day'], limits: { accounts: 5 } },
-                    { id: '3', name: 'Master', slug: 'master', price: 499, features: ['Unlimited Accounts', 'Unlimited Actions'], limits: { accounts: -1 } }
-                ];
-                renderPricingCards();
-            }
-        }
-
-        // ============================================
-        // 🎨 RENDERING FUNCTIONS
-        // ============================================
-
-        function renderPricingCards() {
-            const pricingGrid = document.getElementById('pricingGrid');
-            if (!pricingGrid) return;
-
-            const pricingHtml = allPlans.map(plan => {
-                let features = [];
-                if (Array.isArray(plan.features)) {
-                    features = plan.features;
-                } else if (typeof plan.features === 'string') {
-                    try {
-                        features = JSON.parse(plan.features);
-                    } catch (e) {
-                        features = [];
-                    }
-                }
-                
-                const isPopular = plan.slug === 'pro';
-                
-                return `
-                    <div class="pricing-card ${isPopular ? 'popular' : ''} plan-${plan.slug}">
-                        ${isPopular ? '<div class="popular-badge">POPULAR</div>' : ''}
-                        <div class="plan-icon">
-                            <i class="fas ${plan.slug === 'free' ? 'fa-gift' : plan.slug === 'pro' ? 'fa-rocket' : 'fa-crown'}"></i>
-                        </div>
-                        <h3 class="plan-name">${plan.name}</h3>
-                        <div class="plan-price">
-                            <span class="price-currency">₹</span>
-                            <span class="price-amount">${plan.price}</span>
-                            <span class="price-period">/month</span>
-                        </div>
-                        <ul class="plan-features">
-                            ${features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}
-                        </ul>
-                        <button class="btn ${plan.price === 0 ? 'btn-secondary' : 'btn-primary'}" 
-                                style="width: 100%;" 
-                                onclick="${plan.price === 0 ? 'showAuthModal()' : `selectPlan('${plan.id}')`}">
-                            ${plan.price === 0 ? 'Get Started Free' : 'Subscribe Now'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-
-            pricingGrid.innerHTML = pricingHtml;
-        }
-
-        // ============================================
-        // 🖥️ UI STATE MANAGEMENT
-        // ============================================
-
-        function showLandingPage() {
-            const landingPage = document.getElementById('landingPage');
-            const userDashboard = document.getElementById('userDashboard');
-            const adminDashboard = document.getElementById('adminDashboard');
-            
-            if (landingPage) landingPage.style.display = 'block';
-            if (userDashboard) userDashboard.classList.remove('active');
-            if (adminDashboard) adminDashboard.classList.remove('active');
-        }
-
-        function showUserDashboard() {
-            const landingPage = document.getElementById('landingPage');
-            const userDashboard = document.getElementById('userDashboard');
-            const adminDashboard = document.getElementById('adminDashboard');
-            
-            if (landingPage) landingPage.style.display = 'none';
-            if (adminDashboard) adminDashboard.classList.remove('active');
-            if (userDashboard) userDashboard.classList.add('active');
-
-            // Update UI with user info
-            updateDashboardUI();
-        }
-
-        function showAdminDashboard() {
-            const landingPage = document.getElementById('landingPage');
-            const userDashboard = document.getElementById('userDashboard');
-            const adminDashboard = document.getElementById('adminDashboard');
-            
-            if (landingPage) landingPage.style.display = 'none';
-            if (userDashboard) userDashboard.classList.remove('active');
-            if (adminDashboard) adminDashboard.classList.add('active');
-
-            // Update admin UI
-            updateAdminUI();
-        }
-
-        function updateDashboardUI() {
-            // Update user info
-            const userName = document.getElementById('userName');
-            if (userName) {
-                userName.textContent = currentUserProfile?.full_name || currentUser?.email?.split('@')[0] || 'User';
-            }
-            
-            const userAvatar = document.getElementById('userAvatar');
-            if (userAvatar) {
-                userAvatar.src = currentUserProfile?.avatar_url || 'https://via.placeholder.com/45';
-            }
-
-            // Update plan badge
-            const planName = currentSubscription?.plan?.name || 'Free';
-            const userPlan = document.getElementById('userPlan');
-            if (userPlan) {
-                userPlan.textContent = planName;
-                userPlan.className = `badge badge-${planName === 'Free' ? 'secondary' : planName === 'Pro' ? 'info' : 'warning'}`;
-            }
-        }
-
-        function updateAdminUI() {
-            const adminName = document.getElementById('adminName');
-            if (adminName) {
-                adminName.textContent = currentUserProfile?.full_name || 'Admin';
-            }
-            
-            const adminAvatar = document.getElementById('adminAvatar');
-            if (adminAvatar) {
-                adminAvatar.src = currentUserProfile?.avatar_url || 'https://via.placeholder.com/45';
-            }
-        }
-
-        // ============================================
-        // 🔔 UTILITY FUNCTIONS
-        // ============================================
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            const msg = document.getElementById('toastMessage');
-
-            if (!toast || !icon || !msg) return;
-
-            msg.textContent = message;
-            
-            const icons = {
-                success: 'fa-check-circle',
-                error: 'fa-times-circle',
-                warning: 'fa-exclamation-triangle',
-                info: 'fa-info-circle'
-            };
-            
-            const colors = {
-                success: '#10b981',
-                error: '#ef4444',
-                warning: '#f59e0b',
-                info: '#6366f1'
-            };
-
-            icon.className = `fas ${icons[type] || icons.success}`;
-            toast.style.borderLeft = `4px solid ${colors[type] || colors.success}`;
-            toast.style.display = 'block';
-
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        function showAuthModal() {
-            const modal = document.getElementById('authModal');
-            if (modal) modal.classList.add('active');
-        }
-
-        function closeAuthModal() {
-            const modal = document.getElementById('authModal');
-            if (modal) modal.classList.remove('active');
-        }
-
-        function scrollToSection(id) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        function copyUpiId() {
-            const upiDisplay = document.getElementById('upiIdDisplay');
-            if (upiDisplay) {
-                const upiId = upiDisplay.textContent;
-                navigator.clipboard.writeText(upiId).then(() => {
-                    showToast('UPI ID copied!', 'success');
-                });
-            }
-        }
-
-        // ============================================
-        // 💳 PAYMENT SYSTEM
-        // ============================================
-
-        function selectPlan(planId) {
-            if (!currentUser) {
-                showAuthModal();
-                return;
-            }
-
-            const plan = allPlans.find(p => p.id === planId);
-            if (!plan) {
-                showToast('Plan not found', 'error');
-                return;
-            }
-
-            if (plan.price === 0) {
-                showToast('You already have access to the Free plan', 'info');
-                return;
-            }
-
-            selectedPlanForPayment = plan;
-            openPaymentModal(plan);
-        }
-
-        function openPaymentModal(plan) {
-            const paymentPlanName = document.getElementById('paymentPlanName');
-            if (paymentPlanName) {
-                paymentPlanName.textContent = `${plan.name} Plan - ₹${plan.price}/month`;
-            }
-            
-            const amountPaid = document.getElementById('amountPaid');
-            if (amountPaid) amountPaid.value = plan.price;
-            
-            const transactionId = document.getElementById('transactionId');
-            if (transactionId) transactionId.value = '';
-            
-            // Generate QR Code
-            generateQRCode(plan.price);
-            
-            const modal = document.getElementById('paymentModal');
-            if (modal) modal.classList.add('active');
-        }
-
-        function closePaymentModal() {
-            const modal = document.getElementById('paymentModal');
-            if (modal) modal.classList.remove('active');
-            selectedPlanForPayment = null;
-        }
-
-        function generateQRCode(amount) {
-            const upiId = (appSettings.upi_id || DEFAULT_UPI_ID).replace(/"/g, '');
-            const qrContainer = document.getElementById('qrCode');
-            
-            if (!qrContainer) return;
-            
-            // UPI payment URL format
-            const upiUrl = `upi://pay?pa=${upiId}&pn=InstaBot%20Pro&am=${amount}&cu=INR&tn=InstaBot%20Pro%20Subscription`;
-            
-            // Generate QR using API
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
-            
-            qrContainer.innerHTML = `<img src="${qrApiUrl}" alt="Payment QR Code" style="width: 100%; height: 100%; object-fit: contain;">`;
-        }
-
-        async function submitPayment(event) {
-            event.preventDefault();
-            
-            const transactionIdInput = document.getElementById('transactionId');
-            const amountPaidInput = document.getElementById('amountPaid');
-            
-            const transactionId = transactionIdInput ? transactionIdInput.value.trim() : '';
-            const amountPaid = amountPaidInput ? amountPaidInput.value : 0;
-
-            if (!transactionId) {
-                showToast('Please enter transaction ID', 'error');
-                return;
-            }
-
-            if (!amountPaid || amountPaid <= 0) {
-                showToast('Please enter valid amount', 'error');
-                return;
-            }
-
-            if (!selectedPlanForPayment) {
-                showToast('No plan selected', 'error');
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitPaymentBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-            }
-
-            try {
-                // Check for duplicate transaction ID
-                const { data: existing } = await supabase
-                    .from('payments')
-                    .select('id')
-                    .eq('transaction_id', transactionId)
-                    .single();
-
-                if (existing) {
-                    showToast('This transaction ID has already been submitted', 'error');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Payment';
-                    }
-                    return;
-                }
-
-                // Create payment record
-                const { data, error } = await supabase
-                    .from('payments')
-                    .insert({
-                        user_id: currentUser.id,
-                        plan_id: selectedPlanForPayment.id,
-                        amount: parseFloat(amountPaid),
-                        transaction_id: transactionId,
-                        status: 'pending',
-                        payment_method: 'upi'
-                    })
-                    .select()
-                    .single();
-
-                if (error) throw error;
-
-                showToast('Payment submitted! Awaiting admin verification.', 'success');
-                closePaymentModal();
-
-            } catch (error) {
-                console.error('Payment submission error:', error);
-                showToast('Failed to submit payment. Please try again.', 'error');
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Payment';
-                }
-            }
-        }
-
-        // ============================================
-        // 🔄 REALTIME SUBSCRIPTIONS
-        // ============================================
-
-        function setupRealtimeSubscriptions() {
-            if (!currentUser) return;
-
-            // Listen for subscription changes
-            supabase
-                .channel('user-subscriptions-' + currentUser.id)
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'subscriptions',
-                    filter: `user_id=eq.${currentUser.id}`
-                }, async (payload) => {
-                    await loadUserSubscription();
-                    updateDashboardUI();
-                    if (payload.new?.status === 'active') {
-                        showToast('Your subscription has been activated!', 'success');
-                    }
-                })
-                .subscribe();
-
-            // Listen for payment status changes
-            supabase
-                .channel('user-payments-' + currentUser.id)
-                .on('postgres_changes', {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'payments',
-                    filter: `user_id=eq.${currentUser.id}`
-                }, (payload) => {
-                    if (payload.new?.status === 'verified') {
-                        showToast('Your payment has been verified!', 'success');
-                    } else if (payload.new?.status === 'rejected') {
-                        showToast('Your payment was rejected. Please contact support.', 'error');
-                    }
-                })
-                .subscribe();
-        }
-
-        // Make functions available globally
-        window.signInWithGoogle = signInWithGoogle;
-        window.showAuthModal = showAuthModal;
-        window.closeAuthModal = closeAuthModal;
-        window.scrollToSection = scrollToSection;
-        window.copyUpiId = copyUpiId;
-        window.selectPlan = selectPlan;
-        window.closePaymentModal = closePaymentModal;
-        window.submitPayment = submitPayment;
-        window.makeFirstAdmin = async function() {
-            if (!currentUser) {
-                alert('Please login first');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ 
-                        is_admin: true, 
-                        is_god_admin: true 
-                    })
-                    .eq('id', currentUser.id);
-
-                if (error) throw error;
-
-                alert('✅ You are now a God Admin! Page will refresh...');
-                location.reload();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to set admin status: ' + error.message);
-            }
+        let builderQuestions = [];
+        let playerActiveForm = null;
+        let playerIndex = 0;
+        let playerAnswers = {};
+
+        window.onload = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fid = urlParams.get('id');
+            if (fid) loadPlayer(fid);
+            else checkAuth();
         };
 
-        console.log('%c🚀 InstaBot Pro Loaded Successfully!', 'color: #6366f1; font-size: 16px; font-weight: bold;');
-        console.log('%c💡 To make yourself admin, login and run: makeFirstAdmin()', 'color: #10b981; font-size: 12px;');
+        async function checkAuth() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await syncProfile();
+                await loadDashboard();
+            } else {
+                showView('auth');
+            }
+        }
+
+        async function syncProfile() {
+            const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (!data) {
+                await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email });
+            }
+        }
+
+        async function signInWithGoogle() {
+            await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+        }
+
+        async function signOut() {
+            await sb.auth.signOut();
+            location.reload();
+        }
+
+        function showView(v) {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            if (v === 'auth') document.getElementById('authSection').classList.remove('hidden');
+            if (v === 'dash') document.getElementById('dashboardSection').classList.remove('hidden');
+            if (v === 'admin') document.getElementById('adminSection').classList.remove('hidden');
+        }
+
+        async function loadDashboard() {
+            showView('dash');
+            const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+            document.getElementById('welcomeUser').innerText = `Hello, ${profile.email.split('@')[0]}!`;
+            document.getElementById('subLabel').innerText = profile.subscription.toUpperCase();
+            
+            if (profile.is_admin) {
+                document.getElementById('headerButtons').innerHTML = `<button class="btn btn-warning" onclick="loadAdmin()">God Mode</button>`;
+            }
+
+            const { data: forms } = await sb.from('forms').select('*').eq('user_id', currentUser.id);
+            document.getElementById('countForms').innerText = forms?.length || 0;
+            
+            const list = document.getElementById('formsList');
+            list.innerHTML = forms?.map(f => `
+                <div class="glass-card" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div><h3>${f.title}</h3></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="copyLink('${f.id}')">Share</button>
+                        <button class="btn btn-danger" onclick="deleteForm('${f.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('') || '<p style="color:white; text-align:center;">No forms found.</p>';
+        }
+
+        // --- Builder ---
+        function openBuilder() {
+            builderQuestions = [];
+            document.getElementById('builderQuestions').innerHTML = '';
+            document.getElementById('formTitle').value = '';
+            document.getElementById('modalBuilder').classList.add('active');
+            addQuestionRaw();
+        }
+
+        function addQuestionRaw() {
+            const id = Date.now();
+            builderQuestions.push(id);
+            const div = document.createElement('div');
+            div.id = `q_${id}`;
+            div.innerHTML = `
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <input type="text" id="txt_${id}" placeholder="Enter Question Text">
+                    <select id="type_${id}">
+                        <option value="text">Short Text</option>
+                        <option value="textarea">Long Text</option>
+                        <option value="number">Number</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('builderQuestions').appendChild(div);
+        }
+
+        async function saveForm() {
+            const title = document.getElementById('formTitle').value;
+            const qs = builderQuestions.map(id => ({
+                id,
+                text: document.getElementById(`txt_${id}`).value,
+                type: document.getElementById(`type_${id}`).value
+            }));
+
+            await sb.from('forms').insert({ user_id: currentUser.id, title, questions: qs });
+            closeModals();
+            loadDashboard();
+        }
+
+        // --- Player ---
+        async function loadPlayer(id) {
+            const { data } = await sb.from('forms').select('*').eq('id', id).single();
+            if (!data) return alert("Not found");
+            playerActiveForm = data;
+            playerIndex = 0;
+            playerAnswers = {};
+            document.getElementById('formPlayerSection').classList.add('active');
+            renderPlayerQ();
+        }
+
+        function renderPlayerQ() {
+            const qs = playerActiveForm.questions;
+            const container = document.getElementById('playerQuestion');
+            
+            if (playerIndex >= qs.length) {
+                finishPlayer();
+                return;
+            }
+
+            const q = qs[playerIndex];
+            document.getElementById('progressBar').style.width = `${(playerIndex / qs.length) * 100}%`;
+            
+            container.innerHTML = `
+                <h1 style="font-size: 32px; margin-bottom: 20px;">${q.text}</h1>
+                ${q.type === 'textarea' ? `<textarea id="ans" class="question-input" rows="4"></textarea>` : `<input type="text" id="ans" class="question-input">`}
+                <button class="btn btn-primary" onclick="nextPlayerQ()">OK ✅</button>
+            `;
+            setTimeout(() => document.getElementById('ans').focus(), 100);
+        }
+
+        function nextPlayerQ() {
+            const val = document.getElementById('ans').value;
+            playerAnswers[playerActiveForm.questions[playerIndex].text] = val;
+            playerIndex++;
+            renderPlayerQ();
+        }
+
+        async function finishPlayer() {
+            document.getElementById('progressBar').style.width = `100%`;
+            document.getElementById('playerQuestion').innerHTML = '<h2>Submitting...</h2>';
+            await sb.from('responses').insert({ form_id: playerActiveForm.id, answers: playerAnswers });
+            document.getElementById('playerQuestion').innerHTML = '<h1 style="font-size: 40px;">🎉 Thank You!</h1><p>Response saved.</p>';
+        }
+
+        // --- Admin ---
+        async function loadAdmin() {
+            showView('admin');
+            const { data: users } = await sb.from('profiles').select('*');
+            const { data: pays } = await sb.from('payments').select('*, profiles(email)').eq('status', 'pending');
+
+            document.getElementById('adminUsers').innerHTML = `
+                <table class="data-table">
+                    <tr><th>Email</th><th>ID</th><th>Sub</th></tr>
+                    ${users.map(u => `<tr><td>${u.email}</td><td style="font-size:10px">${u.id}</td><td>${u.subscription}</td></tr>`).join('')}
+                </table>`;
+
+            document.getElementById('adminPayments').innerHTML = pays?.map(p => `
+                <div class="glass-card" style="margin-bottom:10px; color:var(--dark);">
+                    <b>${p.profiles.email}</b> | ₹${p.amount} | TX: ${p.transaction_id}
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-success" onclick="adminPayApprove('${p.id}','${p.user_id}','${p.plan}')">Approve</button>
+                    </div>
+                </div>
+            `).join('') || "No pending approvals.";
+        }
+
+        async function adminFastSub() {
+            const uid = document.getElementById('adminTargetId').value;
+            const sub = document.getElementById('adminSubLevel').value;
+            await sb.from('profiles').update({ subscription: sub }).eq('id', uid);
+            alert("Updated!");
+            loadAdmin();
+        }
+
+        async function adminPayApprove(pid, uid, plan) {
+            await sb.from('payments').update({ status: 'approved' }).eq('id', pid);
+            await sb.from('profiles').update({ subscription: plan }).eq('id', uid);
+            alert("Approved!");
+            loadAdmin();
+        }
+
+        // --- Payments (User) ---
+        function openPayment() { document.getElementById('modalPayment').classList.add('active'); }
+        
+        async function submitPayment() {
+            const plan = document.getElementById('payPlan').value;
+            const tx = document.getElementById('payTx').value;
+            const amount = plan === 'basic' ? 299 : 599;
+            await sb.from('payments').insert({ user_id: currentUser.id, plan, transaction_id: tx, amount });
+            alert("Sent to admin for approval.");
+            closeModals();
+        }
+
+        // --- Helpers ---
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        function copyLink(id) {
+            const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+            navigator.clipboard.writeText(url);
+            alert("Form Link Copied!");
+        }
+        async function deleteForm(id) {
+            if (!confirm("Delete?")) return;
+            await sb.from('forms').delete().eq('id', id);
+            loadDashboard();
+        }
     </script>
 </body>
 </html>
