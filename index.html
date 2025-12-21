@@ -1,26 +1,1797 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaBot Pro - Complete Instagram Automation Platform</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #0084ff;
+            --primary-dark: #0066cc;
+            --secondary: #00d4aa;
+            --success: #00c48c;
+            --danger: #ff5757;
+            --warning: #ffa800;
+            --dark: #1a1d29;
+            --darker: #12141d;
+            --darkest: #0a0b10;
+            --light: #ffffff;
+            --gray: #8b92a7;
+            --gray-light: #e8eaf0;
+            --border: #2d3142;
+            --glass: rgba(42, 46, 66, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --sidebar-width: 280px;
+        }
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darkest);
+            color: var(--light);
+            overflow-x: hidden;
+        }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: float 25s infinite ease-in-out;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .orb1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -250px;
+            left: -250px;
+        }
+
+        .orb2 {
+            width: 600px;
+            height: 600px;
+            background: var(--secondary);
+            bottom: -300px;
+            right: -300px;
+            animation-delay: -12s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, -100px) scale(1.1); }
+            66% { transform: translate(-100px, 100px) scale(0.9); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 132, 255, 0.15);
+            border-color: rgba(0, 132, 255, 0.2);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #0066cc);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 132, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--light);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--dark);
+            border-color: var(--primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00a872);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .landing-page { display: block; }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 60px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 120px 20px 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .hero .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 22px;
+            color: var(--gray);
+            margin-bottom: 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            padding: 80px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            text-align: left;
+            padding: 40px 32px;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 24px;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .pricing {
+            padding: 100px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 60px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .pricing-card {
+            text-align: center;
+            position: relative;
+            padding: 40px 32px;
+        }
+
+        .pricing-card.popular {
+            border: 2px solid var(--primary);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .price {
+            font-size: 56px;
+            font-weight: 800;
+            margin: 20px 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .feature-list li {
+            padding: 12px 0;
+            color: var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-list i {
+            color: var(--success);
+        }
+
+        .dashboard { display: none; min-height: 100vh; }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 24px 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header { padding: 0 24px 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--dark);
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        .nav-section { padding: 0 16px; margin-bottom: 24px; }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            padding: 0 12px 8px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--gray-light);
+        }
+
+        .nav-item:hover {
+            background: var(--dark);
+            color: var(--light);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            font-weight: 600;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title { font-size: 32px; font-weight: 800; }
+
+        .instagram-connect-card {
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            border: none;
+            text-align: center;
+            padding: 48px;
+            margin-bottom: 32px;
+        }
+
+        .instagram-connected {
+            background: var(--dark);
+            border: 1px solid var(--success);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .instagram-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--success);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .stat-info h3 {
+            font-size: 36px;
+            font-weight: 800;
+        }
+
+        .stat-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--dark);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray);
+            text-transform: uppercase;
+        }
+
+        tr:hover { background: var(--dark); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .close {
+            font-size: 32px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .form-group { margin-bottom: 24px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--darker);
+            color: var(--light);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .toggle input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-free { background: var(--border); color: var(--gray-light); }
+        .badge-pro { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .badge-master { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+        .badge-active { background: var(--success); color: white; }
+        .badge-inactive { background: var(--danger); color: white; }
+        .badge-pending { background: var(--warning); color: white; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 18px 24px;
+            border-radius: 12px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            gap: 14px;
+            z-index: 3000;
+            min-width: 300px;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: var(--gray);
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+        .hidden { display: none !important; }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .quick-action-card {
+            background: var(--darker);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .quick-action-card:hover {
+            background: var(--dark);
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+
+        .quick-action-card i {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 20px; }
+            .pricing-card.popular { transform: scale(1); }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 8px 25px rgba(0, 132, 255, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message"></span>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Landing Page -->
+    <div class="landing-page" id="landingPage">
+        <nav class="navbar">
+            <div class="logo"><i class="fab fa-instagram"></i> InstaBot Pro</div>
+            <button class="btn btn-primary" onclick="loginWithGoogle()">
+                <i class="fab fa-google"></i> Start Free
+            </button>
+        </nav>
+
+        <section class="hero">
+            <h1>Automate Instagram DMs <br><span class="highlight">Like a Pro</span></h1>
+            <p>Complete Instagram automation platform for businesses<br>Auto-reply, manage contacts, boost engagement</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="loginWithGoogle()">
+                    <i class="fab fa-google"></i> Get Started Free
+                </button>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h3>Instant Auto-Reply</h3>
+                <p>Respond to DMs automatically with smart triggers</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i class="fas fa-users"></i></div>
+                <h3>Contact Manager</h3>
+                <p>Organize contacts with tags and filters</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Analytics</h3>
+                <p>Track performance with real-time insights</p>
+            </div>
+        </section>
+
+        <section class="pricing">
+            <h2>Simple Pricing</h2>
+            <div class="pricing-grid">
+                <div class="glass-card pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">₹0<span style="font-size: 18px;">/mo</span></div>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> 1,000 Contacts</li>
+                        <li><i class="fas fa-check"></i> 3 Automations</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="loginWithGoogle()">Start Free</button>
+                </div>
+
+                <div class="glass-card pricing-card popular">
+                    <h3>Pro</h3>
+                    <div class="price">₹199<span style="font-size: 18px;">/mo</span></div>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> 10,000 Contacts</li>
+                        <li><i class="fas fa-check"></i> 25 Automations</li>
+                    </ul>
+                    <button class="btn btn-primary" onclick="loginWithGoogle()">Start Pro</button>
+                </div>
+
+                <div class="glass-card pricing-card">
+                    <h3>Master</h3>
+                    <div class="price">₹499<span style="font-size: 18px;">/mo</span></div>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Unlimited Everything</li>
+                        <li><i class="fas fa-check"></i> API Access</li>
+                    </ul>
+                    <button class="btn btn-primary" onclick="loginWithGoogle()">Start Master</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"><i class="fab fa-instagram"></i> InstaBot Pro</div>
+                <div class="user-info">
+                    <img src="" class="user-avatar" id="userAvatar">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; font-size: 14px;" id="userName">Loading...</div>
+                        <div style="font-size: 12px; color: var(--gray);" id="userPlanBadge">Free Plan</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-label">Main</div>
+                <div class="nav-item active" onclick="showSection('dashboardSection')">
+                    <i class="fas fa-home"></i> Dashboard
+                </div>
+                <div class="nav-item" onclick="showSection('automationsSection')">
+                    <i class="fas fa-robot"></i> Automations
+                </div>
+                <div class="nav-item" onclick="showSection('contactsSection')">
+                    <i class="fas fa-users"></i> Contacts
+                </div>
+                <div class="nav-item" onclick="showSection('billingSection')">
+                    <i class="fas fa-credit-card"></i> Billing
+                </div>
+                <div class="nav-item" onclick="showSection('settingsSection')">
+                    <i class="fas fa-cog"></i> Settings
+                </div>
+                <div class="nav-item hidden" id="adminNav" onclick="showSection('adminSection')">
+                    <i class="fas fa-crown"></i> Admin
+                </div>
+                <div class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboardSection">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+
+                <div id="instagramNotConnected" class="glass-card instagram-connect-card">
+                    <h2><i class="fab fa-instagram"></i> Connect Instagram</h2>
+                    <p>Connect your Instagram Business account</p>
+                    <button class="btn btn-primary" onclick="connectInstagram()" style="background: white; color: #833ab4;">
+                        <i class="fab fa-instagram"></i> Connect Account
+                    </button>
+                </div>
+
+                <div id="instagramConnected" class="instagram-connected hidden">
+                    <img src="" class="instagram-avatar" id="instaAvatar">
+                    <div style="flex: 1;">
+                        <h3>@<span id="instaUsername">username</span></h3>
+                        <p style="color: var(--gray);"><i class="fas fa-check-circle" style="color: var(--success);"></i> Connected</p>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="disconnectInstagram()">
+                        <i class="fas fa-unlink"></i> Disconnect
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalContacts">0</h3>
+                            <p>Total Contacts</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-robot">
+                                                  </div>
+                        <div class="stat-info">
+                            <h3 id="activeAutomations">0</h3>
+                            <p>Active Automations</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                        <div class="stat-info">
+                            <h3 id="repliedDMs">0</h3>
+                            <p>Replied DMs</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="responseRate">0%</h3>
+                            <p>Response Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-header" style="margin-top: 40px;">
+                    <h2 style="font-size: 24px;">Quick Actions</h2>
+                </div>
+                <div class="quick-actions">
+                    <div class="quick-action-card" onclick="showSection('automationsSection')">
+                        <i class="fas fa-plus-circle"></i>
+                        <h4>Create Automation</h4>
+                    </div>
+                    <div class="quick-action-card" onclick="showModal('importContactsModal')">
+                        <i class="fas fa-file-import"></i>
+                        <h4>Import Contacts</h4>
+                    </div>
+                    <div class="quick-action-card" onclick="showModal('broadcastModal')">
+                        <i class="fas fa-bullhorn"></i>
+                        <h4>Send Broadcast</h4>
+                    </div>
+                    <div class="quick-action-card" onclick="showModal('analyticsModal')">
+                        <i class="fas fa-chart-bar"></i>
+                        <h4>View Analytics</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automations Section -->
+            <div class="section" id="automationsSection">
+                <div class="page-header">
+                    <h1 class="page-title">Automations</h1>
+                    <button class="btn btn-primary" onclick="showModal('createAutomationModal')">
+                        <i class="fas fa-plus"></i> Create Automation
+                    </button>
+                </div>
+
+                <div class="empty-state" id="automationsEmpty">
+                    <i class="fas fa-robot"></i>
+                    <h3>No automations yet</h3>
+                    <p>Create your first automation to start replying to DMs automatically</p>
+                    <button class="btn btn-primary" onclick="showModal('createAutomationModal')">
+                        <i class="fas fa-plus"></i> Create Automation
+                    </button>
+                </div>
+
+                <div class="table-container hidden" id="automationsTable">
+                    <div class="table-header">
+                        <h3>Your Automations</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" placeholder="Search automations..." style="width: 200px;">
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Trigger</th>
+                                <th>Status</th>
+                                <th>Replies</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="automationsList">
+                            <!-- Automations will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Contacts Section -->
+            <div class="section" id="contactsSection">
+                <div class="page-header">
+                    <h1 class="page-title">Contacts</h1>
+                    <button class="btn btn-primary" onclick="showModal('importContactsModal')">
+                        <i class="fas fa-plus"></i> Import Contacts
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Contact List</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" placeholder="Search contacts..." style="width: 200px;">
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Export</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Name</th>
+                                <th>Last Message</th>
+                                <th>Tags</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsList">
+                            <!-- Contacts will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Billing Section -->
+            <div class="section" id="billingSection">
+                <div class="page-header">
+                    <h1 class="page-title">Billing & Plans</h1>
+                </div>
+
+                <div class="glass-card" style="margin-bottom: 32px;">
+                    <h3 style="margin-bottom: 16px;">Current Plan</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="font-size: 24px; margin-bottom: 8px;" id="currentPlan">Free Plan</h2>
+                            <p style="color: var(--gray);">Your current billing cycle</p>
+                        </div>
+                        <span class="badge badge-free" id="planBadge">Free</span>
+                    </div>
+                </div>
+
+                <div class="pricing-grid">
+                    <div class="glass-card pricing-card">
+                        <h3>Free</h3>
+                        <div class="price">₹0<span>/mo</span></div>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> 1,000 Contacts</li>
+                            <li><i class="fas fa-check"></i> 3 Automations</li>
+                        </ul>
+                        <button class="btn btn-secondary" onclick="upgradePlan('free')" id="freeBtn">Current Plan</button>
+                    </div>
+
+                    <div class="glass-card pricing-card popular">
+                        <h3>Pro</h3>
+                        <div class="price">₹199<span>/mo</span></div>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> 10,000 Contacts</li>
+                            <li><i class="fas fa-check"></i> 25 Automations</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="upgradePlan('pro')" id="proBtn">Upgrade to Pro</button>
+                    </div>
+
+                    <div class="glass-card pricing-card">
+                        <h3>Master</h3>
+                        <div class="price">₹499<span>/mo</span></div>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Unlimited Everything</li>
+                            <li><i class="fas fa-check"></i> API Access</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="upgradePlan('master')" id="masterBtn">Upgrade to Master</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section" id="settingsSection">
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                </div>
+
+                <div class="glass-card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 24px;">Account Settings</h3>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="userEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" class="form-control" id="displayName">
+                    </div>
+                    <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+                </div>
+
+                <div class="glass-card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 24px;">Notification Settings</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <label style="font-weight: 600;">Email Notifications</label>
+                            <p style="color: var(--gray); font-size: 14px;">Receive email alerts</p>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="emailNotifications">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Section (Hidden by default) -->
+            <div class="section" id="adminSection">
+                <div class="page-header">
+                    <h1 class="page-title">Admin Panel</h1>
+                </div>
+                <div class="glass-card">
+                    <h3>System Status</h3>
+                    <p>This section is only visible to administrators.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="createAutomationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Automation</h2>
+                <span class="close" onclick="closeModal('createAutomationModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Automation Name</label>
+                <input type="text" class="form-control" id="automationName" placeholder="e.g., Welcome Message">
+            </div>
+            <div class="form-group">
+                <label>Trigger Type</label>
+                <select class="form-control" id="triggerType">
+                    <option value="new_message">New Message Received</option>
+                    <option value="keyword">Keyword Match</option>
+                    <option value="time">Time-based</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Response Message</label>
+                <textarea class="form-control" id="responseMessage" placeholder="Enter your auto-reply message here..."></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
+                <button class="btn btn-secondary" onclick="closeModal('createAutomationModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="createAutomation()">Create Automation</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importContactsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Contacts</h2>
+                <span class="close" onclick="closeModal('importContactsModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Import Method</label>
+                <select class="form-control" id="importMethod">
+                    <option value="csv">CSV File</option>
+                    <option value="instagram">From Instagram</option>
+                    <option value="manual">Manual Entry</option>
+                </select>
+            </div>
+            <div class="form-group" id="csvUploadSection">
+                <label>Upload CSV File</label>
+                <input type="file" class="form-control" accept=".csv">
+                <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">CSV format: username,name,email</p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
+                <button class="btn btn-secondary" onclick="closeModal('importContactsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="importContacts()">Import Contacts</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+
+    <script>
+        // Supabase configuration (replace with your actual Supabase URL and anon key)
+        const SUPABASE_URL = 'https://uvnksakgjupnivmfkjcv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmtzYWtnanVwbml2bWZramN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NzM5NzYsImV4cCI6MjA4MTQ0OTk3Nn0.gM5hYGxnUI-n_zM-iut8Dml1T5593YhH5A9HNo8hovA';
+        
+        let supabase;
+        let currentUser = null;
+        let userData = null;
+
+        // Initialize Supabase
+        function initSupabase() {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Check for existing session
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    currentUser = session.user;
+                    loadUserData();
+                    showDashboard();
+                }
+            });
+            
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    currentUser = session.user;
+                    loadUserData();
+                    showDashboard();
+                } else {
+                    currentUser = null;
+                    showLandingPage();
+                }
+            });
+        }
+
+        // Show landing page
+        function showLandingPage() {
+            document.getElementById('landingPage').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        // Show dashboard
+        function showDashboard() {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            showSection('dashboardSection');
+            updateDashboardStats();
+        }
+
+        // Google Login
+        async function loginWithGoogle() {
+            showLoading(true);
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login failed. Please try again.', 'error');
+                showLoading(false);
+            }
+        }
+
+        // Logout
+        async function logout() {
+            showLoading(true);
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                showToast('Logged out successfully', 'success');
+                showLandingPage();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Logout failed', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load user data from database
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            try {
+                // Check if user exists in database
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (error && error.code === 'PGRST116') {
+                    // User doesn't exist, create new user
+                    const newUser = {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
+                        plan: 'free',
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert([newUser]);
+                    
+                    if (insertError) throw insertError;
+                    
+                    userData = newUser;
+                } else if (error) {
+                    throw error;
+                } else {
+                    userData = data;
+                }
+                
+                // Update UI with user data
+                updateUserUI();
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showToast('Error loading user data', 'error');
+            }
+        }
+
+        // Update user UI
+        function updateUserUI() {
+            if (!currentUser || !userData) return;
+            
+            document.getElementById('userName').textContent = userData.name || currentUser.email;
+            document.getElementById('userEmail').value = currentUser.email;
+            document.getElementById('displayName').value = userData.name || '';
+            
+            // Update plan badge
+            const planBadge = document.getElementById('userPlanBadge');
+            const currentPlan = document.getElementById('currentPlan');
+            const planBadgeMain = document.getElementById('planBadge');
+            
+            let badgeClass = 'badge-free';
+            let planText = 'Free Plan';
+            
+            if (userData.plan === 'pro') {
+                badgeClass = 'badge-pro';
+                planText = 'Pro Plan';
+            } else if (userData.plan === 'master') {
+                badgeClass = 'badge-master';
+                planText = 'Master Plan';
+            }
+            
+            planBadge.textContent = planText;
+            planBadge.className = badgeClass;
+            currentPlan.textContent = planText;
+            planBadgeMain.textContent = userData.plan.charAt(0).toUpperCase() + userData.plan.slice(1);
+            planBadgeMain.className = `badge ${badgeClass}`;
+            
+            // Update upgrade buttons
+            ['free', 'pro', 'master'].forEach(plan => {
+                const btn = document.getElementById(`${plan}Btn`);
+                if (btn) {
+                    btn.textContent = userData.plan === plan ? 'Current Plan' : 
+                                    (plan === 'free' ? 'Downgrade' : `Upgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
+                    btn.disabled = userData.plan === plan;
+                }
+            });
+            
+            // Check if user is admin
+            if (userData.is_admin) {
+                document.getElementById('adminNav').classList.remove('hidden');
+            }
+            
+            // Set avatar (using Gravatar or placeholder)
+            const avatarUrl = currentUser.user_metadata?.avatar_url || 
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || currentUser.email)}&background=0084ff&color=fff&size=128`;
+            
+            document.getElementById('userAvatar').src = avatarUrl;
+        }
+
+        // Update profile
+        async function updateProfile() {
+            const displayName = document.getElementById('displayName').value;
+            
+            if (!displayName.trim()) {
+                showToast('Display name cannot be empty', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ name: displayName })
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                userData.name = displayName;
+                updateUserUI();
+                showToast('Profile updated successfully', 'success');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Failed to update profile', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to corresponding nav item
+            const navItem = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+            
+            // Update mobile sidebar
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
+        // Update dashboard stats
+        async function updateDashboardStats() {
+            if (!currentUser) return;
+            
+            try {
+                // Get contacts count
+                const { count: contactsCount, error: contactsError } = await supabase
+                    .from('contacts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                // Get automations count
+                const { count: automationsCount, error: automationsError } = await supabase
+                    .from('automations')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                if (!contactsError) {
+                    document.getElementById('totalContacts').textContent = contactsCount || 0;
+                }
+                
+                if (!automationsError) {
+                    document.getElementById('activeAutomations').textContent = automationsCount || 0;
+                }
+                
+                // Load automations list if needed
+                if (automationsCount > 0) {
+                    loadAutomations();
+                }
+                
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        // Load automations
+        async function loadAutomations() {
+            try {
+                const { data, error } = await supabase
+                    .from('automations')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const container = document.getElementById('automationsList');
+                const emptyState = document.getElementById('automationsEmpty');
+                const table = document.getElementById('automationsTable');
+                
+                if (data.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    table.classList.add('hidden');
+                    return;
+                }
+                
+                emptyState.classList.add('hidden');
+                table.classList.remove('hidden');
+                
+                container.innerHTML = '';
+                
+                data.forEach(auto => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${auto.name}</strong></td>
+                        <td>${auto.trigger_type}</td>
+                        <td><span class="badge ${auto.is_active ? 'badge-active' : 'badge-inactive'}">${auto.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td>${auto.reply_count || 0}</td>
+                        <td>${new Date(auto.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-icon btn-secondary" onclick="toggleAutomation('${auto.id}', ${!auto.is_active})">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                            <button class="btn btn-icon btn-danger" onclick="deleteAutomation('${auto.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    container.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading automations:', error);
+            }
+        }
+
+        // Create automation
+        async function createAutomation() {
+            const name = document.getElementById('automationName').value.trim();
+            const triggerType = document.getElementById('triggerType').value;
+            const responseMessage = document.getElementById('responseMessage').value.trim();
+            
+            if (!name || !responseMessage) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const automation = {
+                    user_id: currentUser.id,
+                    name: name,
+                    trigger_type: triggerType,
+                    response_message: responseMessage,
+                    is_active: true,
+                    created_at: new Date().toISOString()
+                };
+                
+                const { error } = await supabase
+                    .from('automations')
+                    .insert([automation]);
+                
+                if (error) throw error;
+                
+                closeModal('createAutomationModal');
+                showToast('Automation created successfully', 'success');
+                updateDashboardStats();
+                showSection('automationsSection');
+                
+                // Clear form
+                document.getElementById('automationName').value = '';
+                document.getElementById('responseMessage').value = '';
+                
+            } catch (error) {
+                console.error('Error creating automation:', error);
+                showToast('Failed to create automation', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Toggle automation status
+        async function toggleAutomation(id, newStatus) {
+            try {
+                const { error } = await supabase
+                    .from('automations')
+                    .update({ is_active: newStatus })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showToast(`Automation ${newStatus ? 'activated' : 'deactivated'}`, 'success');
+                loadAutomations();
+            } catch (error) {
+                console.error('Error toggling automation:', error);
+                showToast('Failed to update automation', 'error');
+            }
+        }
+
+        // Delete automation
+        async function deleteAutomation(id) {
+            if (!confirm('Are you sure you want to delete this automation?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('automations')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showToast('Automation deleted', 'success');
+                loadAutomations();
+            } catch (error) {
+                console.error('Error deleting automation:', error);
+                showToast('Failed to delete automation', 'error');
+            }
+        }
+
+        // Upgrade plan
+        async function upgradePlan(plan) {
+            if (userData.plan === plan) return;
+            
+            showLoading(true);
+            
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ plan: plan })
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                userData.plan = plan;
+                updateUserUI();
+                showToast(`Plan upgraded to ${plan}`, 'success');
+                
+            } catch (error) {
+                console.error('Error upgrading plan:', error);
+                showToast('Failed to upgrade plan', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Connect Instagram (simulated)
+        function connectInstagram() {
+            showLoading(true);
+            
+            // Simulate API call
+            setTimeout(() => {
+                document.getElementById('instagramNotConnected').classList.add('hidden');
+                document.getElementById('instagramConnected').classList.remove('hidden');
+                
+                // Set demo Instagram data
+                document.getElementById('instaUsername').textContent = 'instabusiness';
+                document.getElementById('instaAvatar').src = 'https://ui-avatars.com/api/?name=Instagram+Business&background=833ab4&color=fff&size=128';
+                
+                showToast('Instagram account connected successfully', 'success');
+                showLoading(false);
+            }, 1500);
+        }
+
+        // Disconnect Instagram
+        function disconnectInstagram() {
+            if (confirm('Are you sure you want to disconnect your Instagram account?')) {
+                document.getElementById('instagramNotConnected').classList.remove('hidden');
+                document.getElementById('instagramConnected').classList.add('hidden');
+                showToast('Instagram account disconnected', 'success');
+            }
+        }
+
+        // Import contacts
+        async function importContacts() {
+            const method = document.getElementById('importMethod').value;
+            
+            showLoading(true);
+            
+            try {
+                // Simulate import based on method
+                let importedCount = 0;
+                
+                if (method === 'manual') {
+                    // For demo, add some sample contacts
+                    const sampleContacts = [
+                        { username: 'user1', name: 'John Doe', status: 'active' },
+                        { username: 'user2', name: 'Jane Smith', status: 'active' },
+                        { username: 'user3', name: 'Bob Johnson', status: 'inactive' }
+                    ];
+                    
+                    importedCount = sampleContacts.length;
+                    
+                } else if (method === 'instagram') {
+                    importedCount = 50; // Simulated Instagram import
+                } else {
+                    importedCount = 100; // Simulated CSV import
+                }
+                
+                closeModal('importContactsModal');
+                showToast(`Successfully imported ${importedCount} contacts`, 'success');
+                updateDashboardStats();
+                
+            } catch (error) {
+                console.error('Error importing contacts:', error);
+                showToast('Failed to import contacts', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Show loading
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            const icon = toast.querySelector('i');
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            toast.style.display = 'flex';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 5000);
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const menuIcon = document.getElementById('menuIcon');
+            
+            sidebar.classList.toggle('open');
+            
+            if (sidebar.classList.contains('open')) {
+                menuIcon.className = 'fas fa-times';
+            } else {
+                menuIcon.className = 'fas fa-bars';
+            }
+        }
+
+        // Initialize particles.js
+        function initParticles() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#0084ff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#0084ff",
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initSupabase();
+            initParticles();
+            
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            };
+        });
+    </script>
+</body>
 </html>
