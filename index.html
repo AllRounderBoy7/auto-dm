@@ -2074,20 +2074,7 @@
                                 onclick="deleteContact('${contact.id}')" 
                                 title="Delete contact">
                             <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-        
-    } catch (error) {
-        console.error('Error loading contacts:', error);
-        showToast('Error loading contacts: ' + error.message, 'error');
-        
-        // Show error state in table
-        const tbody = document.getElementById('contactsTable');
-        tbody.innerHTML = `
-            <tr>
+                 
                 <td colspan="4">
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
@@ -2102,3 +2089,24 @@
         `;
     }
 }
+                            async function loadContacts() {
+    try {
+        const { data } = await supabase.from('contacts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        const tbody = document.getElementById('contactsTable');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><h3>No contacts</h3><button class="btn btn-primary" onclick="showModal(\'addContactModal\')">Add</button></div></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(c => '<tr><td><div style="display:flex;gap:12px;"><img src="' + c.profile_pic + '" style="width:40px;height:40px;border-radius:50%;"><strong>@' + c.username + '</strong></div></td><td>' + (c.tags ? c.tags.map(t => '<span class="badge badge-pro">' + t + '</span>').join(' ') : 'No tags') + '</td><td>' + (c.last_message_at ? new Date(c.last_message_at).toLocaleDateString('en-IN') : 'Never') + '</td><td><button class="btn btn-icon btn-danger" onclick="deleteContact(\'' + c.id + '\')"><i class="fas fa-trash"></i></button></td></tr>').join('');
+    } catch (error) {
+        console.error(error);
+        showToast('Error', 'error');
+    }
+}
+
+        console.log('InstaBot Pro Ready!');
+    </script>
+</body>
+</html>
