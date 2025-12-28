@@ -1,15 +1,309 @@
-{posts.map((p) => (
-  <div key={p.id} className="card fade-up">
-    <p>{p.content}</p>
+'use client'
 
-    <div style={{ marginTop: 10 }}>
-      <button onClick={() => handleReply(p.id, 'logic')}>
-        Logic galat lag rahi
-      </button>
+import { useEffect, useState } from 'react'
+import { supabase, getPosts, getReplies, createPost, signInWithEmail, signOut, type Post } from '@/lib/supabase'
 
-      <button onClick={() => handleReply(p.id, 'next')}>
-        Next step kya ho sakta hai
-      </button>
+export default function ForumPage() {
+  const [posts, setPosts] = useState<Post[]>([])
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showReplyModal, setShowReplyModal] = useState(false)
+  const [activePost, setActivePost] = useState<Post | null>(null)
+  const [replies, setReplies] = useState<Post[]>([])
+  const [email, setEmail] = useState('')
+  const [replyContent, setReplyContent] = useState('')
+  const [authStep, setAuthStep] = useState<'email' | 'sent'>('email')
+  const [submitting, setSubmitting] = useState(false)
+
+  // Load posts and auth state
+  useEffect(() => {
+    loadPosts()
+    checkUser()
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN') {
+        setShowAuthModal(false)
+        setAuthStep('email')
+      }
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  async function loadPosts() {
+    try {
+      const data = await getPosts()
+      setPosts(data)
+    } catch (error) {
+      console.error('Error loading posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
+  }
+
+  async function handleReplyClick(post: Post) {
+    setActivePost(post)
+    
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+    
+    // Load replies and show modal
+    try {
+      const data = await getReplies(post.id)
+      setReplies(data)
+      setShowReplyModal(true)
+    } catch (error) {
+      console.error('Error loading replies:', error)
+    }
+  }
+
+  async function handleAuth(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    
+    try {
+      await signInWithEmail(email)
+      setAuthStep('sent')
+    } catch (error) {
+      console.error('Auth error:', error)
+      alert('Failed to send magic link. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleReplySubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!replyContent.trim() || !activePost) return
+    
+    setSubmitting(true)
+    
+    try {
+      const newReply = await createPost(replyContent, activePost.id)
+      setReplies([...replies, newReply])
+      setReplyContent('')
+    } catch (error) {
+      console.error('Error posting reply:', error)
+      alert('Failed to post reply. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function closeModals() {
+    setShowAuthModal(false)
+    setShowReplyModal(false)
+    setActivePost(null)
+    setReplies([])
+    setReplyContent('')
+    setAuthStep('email')
+    setEmail('')
+  }
+
+  function formatDate(date: string) {
+    const d = new Date(date)
+    const now = new Date()
+    const diffMs = now.getTime() - d.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return 'just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
+    return `${Math.floor(diffMins / 1440)}d ago`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-zinc-500">Loading...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Forum</h1>
+          {user && (
+            <button
+              onClick={() => signOut()}
+              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Feed */}
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        {posts.length === 0 ? (
+          <div className="text-center text-zinc-500 py-12">
+            No posts yet. Be the first to share something.
+          </div>
+        ) : (
+          posts.map((post) => (
+            <article
+              key={post.id}
+              className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors"
+            >
+              <p className="text-zinc-100 leading-relaxed mb-4">{post.content}</p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-500">{formatDate(post.created_at)}</span>
+                <button
+                  onClick={() => handleReplyClick(post)}
+                  className="text-zinc-400 hover:text-zinc-100 transition-colors font-medium"
+                >
+                  Reply
+                </button>
+              </div>
+            </article>
+          ))
+        )}
+      </main>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
+          onClick={closeModals}
+        >
+          <div 
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 animate-slideUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {authStep === 'email' ? (
+              <>
+                <h2 className="text-2xl font-semibold mb-2">Sign in to reply</h2>
+                <p className="text-zinc-400 mb-6">We'll send you a magic link to sign in instantly</p>
+                
+                <form onSubmit={handleAuth} className="space-y-4">
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 transition-all"
+                    required
+                    disabled={submitting}
+                  />
+                  
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-zinc-100 text-zinc-900 rounded-lg px-4 py-3 font-semibold hover:bg-white transition-colors disabled:opacity-50"
+                  >
+                    {submitting ? 'Sending...' : 'Send magic link'}
+                  </button>
+                </form>
+
+                <div className="mt-4 pt-4 border-t border-zinc-800">
+                  <button
+                    disabled
+                    className="w-full bg-zinc-800 text-zinc-500 rounded-lg px-4 py-3 font-medium cursor-not-allowed"
+                  >
+                    Continue with Google (Coming soon)
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2">Check your email</h2>
+                  <p className="text-zinc-400 mb-6">
+                    We sent a magic link to <span className="text-zinc-100">{email}</span>
+                  </p>
+                  <button
+                    onClick={closeModals}
+                    className="text-zinc-400 hover:text-zinc-100 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reply Modal */}
+      {showReplyModal && activePost && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
+          onClick={closeModals}
+        >
+          <div 
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-slideUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Original Post */}
+            <div className="p-6 border-b border-zinc-800">
+              <p className="text-zinc-100 leading-relaxed mb-2">{activePost.content}</p>
+              <span className="text-sm text-zinc-500">{formatDate(activePost.created_at)}</span>
+            </div>
+
+            {/* Replies */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {replies.length === 0 ? (
+                <p className="text-center text-zinc-500 py-8">No replies yet. Be the first to respond.</p>
+              ) : (
+                replies.map((reply) => (
+                  <div key={reply.id} className="bg-zinc-800/50 rounded-lg p-4">
+                    <p className="text-zinc-200 mb-2">{reply.content}</p>
+                    <span className="text-xs text-zinc-500">{formatDate(reply.created_at)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Reply Input */}
+            <form onSubmit={handleReplySubmit} className="p-6 border-t border-zinc-800">
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="Write your reply..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 transition-all resize-none mb-3"
+                rows={3}
+                disabled={submitting}
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeModals}
+                  className="flex-1 bg-zinc-800 text-zinc-100 rounded-lg px-4 py-2.5 font-medium hover:bg-zinc-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!replyContent.trim() || submitting}
+                  className="flex-1 bg-zinc-100 text-zinc-900 rounded-lg px-4 py-2.5 font-semibold hover:bg-white transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Posting...' : 'Post reply'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-))}
+  )
+}
